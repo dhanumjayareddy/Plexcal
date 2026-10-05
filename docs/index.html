@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PDB Diffusion Database</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-mark" aria-hidden="true">PDB</div>
+
+                <div>
+                    <h1>PDB Diffusion Database</h1>
+                    <p>FRET and Dexter Energy Transfer Analysis</p>
+                </div>
+            </div>
+            <div class="dataset-indicator" id="connectionStatus" role="status">
+                <span class="status-dot"></span>
+                Connecting to database
+            </div>
+        </div>
+    </header>
+
+
+    <!-- Main -->
+    <main class="main-container">
+
+        <!-- Search Section -->
+        <section class="search-section">
+
+            <div class="section-label">
+                <span class="label-spark" aria-hidden="true"></span>
+                STRUCTURAL BIOLOGY · DATA EXPLORER
+            </div>
+
+            <h2>Explore protein<br><span>diffusion data.</span></h2>
+
+            <p class="search-description">
+                Look up a Protein Data Bank structure to see its FRET and
+                Dexter diffusion lengths, organism, and full taxonomy.
+            </p>
+
+            <form class="search-box" id="searchForm">
+
+                <input
+                    type="text"
+                    id="pdbInput"
+                    placeholder="Try 1A00"
+                    autocomplete="off"
+                    spellcheck="false"
+                    maxlength="4"
+                    aria-label="Four-character PDB identifier"
+                    aria-describedby="searchHint"
+                >
+
+                <button id="searchButton" type="submit">
+                    <span>Find structure</span>
+                    <span class="button-arrow" aria-hidden="true">→</span>
+                </button>
+
+            </form>
+
+            <p class="search-hint" id="searchHint">
+                <span class="hint-key">↵</span> Press Enter to search
+                <span class="hint-divider">·</span>
+                <span id="recordCount">Preparing database index…</span>
+            </p>
+            <div class="search-status" id="searchStatus" role="status" aria-live="polite"></div>
+            <div class="hero-decoration" aria-hidden="true">
+                <span class="orbit orbit-one"></span>
+                <span class="orbit orbit-two"></span>
+                <span class="orbit-core">α</span>
+                <span class="orbit-dot orbit-dot-one"></span>
+                <span class="orbit-dot orbit-dot-two"></span>
+            </div>
+
+        </section>
+
+
+        <!-- Result -->
+        <section id="resultSection" class="result-section hidden">
+
+            <!-- PDB Header -->
+            <div class="result-header">
+
+                <div>
+                    <span class="result-label">PDB STRUCTURE</span>
+
+                    <h2 id="pdbIdDisplay">1A00</h2>
+                </div>
+
+                <div class="result-status">
+                    <span class="status-dot"></span>
+                    Database Match
+                </div>
+
+            </div>
+
+
+            <!-- Diffusion Results -->
+            <div class="metrics-grid">
+
+                <div class="metric-card fret-card">
+
+                    <div class="metric-title">
+                        FRET Diffusion Length
+                    </div>
+
+                    <div class="metric-value">
+                        <span id="fretValue">—</span>
+                        <span class="metric-unit">Å</span>
+                    </div>
+
+                    <div class="metric-description">
+                        Förster Resonance Energy Transfer
+                    </div>
+
+                </div>
+
+
+                <div class="metric-card det-card">
+
+                    <div class="metric-title">
+                        DET Diffusion Length
+                    </div>
+
+                    <div class="metric-value">
+                        <span id="detValue">—</span>
+                        <span class="metric-unit">Å</span>
+                    </div>
+
+                    <div class="metric-description">
+                        Dexter Energy Transfer
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Organism -->
+            <div class="content-card">
+
+                <div class="card-header">
+                    <h3>Organism Information</h3>
+                </div>
+
+                <div class="info-grid">
+
+                    <div class="info-item">
+                        <span class="info-label">Species</span>
+                        <span class="info-value" id="species"></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Scientific Name</span>
+                        <span class="info-value" id="scientificName"></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Taxonomy ID</span>
+                        <span class="info-value" id="taxId"></span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Taxonomy -->
+            <div class="content-card">
+
+                <div class="card-header">
+                    <h3>Taxonomic Classification</h3>
+                </div>
+
+                <div class="taxonomy-grid">
+
+                    <div class="taxonomy-item">
+                        <span>Kingdom</span>
+                        <strong id="kingdom">—</strong>
+                    </div>
+
+                    <div class="taxonomy-item">
+                        <span>Phylum</span>
+                        <strong id="phylum">—</strong>
+                    </div>
+
+                    <div class="taxonomy-item">
+                        <span>Class</span>
+                        <strong id="className">—</strong>
+                    </div>
+
+                    <div class="taxonomy-item">
+                        <span>Order</span>
+                        <strong id="order">—</strong>
+                    </div>
+
+                    <div class="taxonomy-item">
+                        <span>Family</span>
+                        <strong id="family">—</strong>
+                    </div>
+
+                    <div class="taxonomy-item">
+                        <span>Genus</span>
+                        <strong id="genus">—</strong>
+                    </div>
+
+                    <div class="taxonomy-item">
+                        <span>Species</span>
+                        <strong id="speciesY">—</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Lineage -->
+            <div class="content-card">
+
+                <div class="card-header">
+                    <h3>Full Taxonomic Lineage</h3>
+                </div>
+
+                <div class="lineage" id="lineage">
+                    —
+                </div>
+
+            </div>
+
+
+            <!-- Raw Data -->
+            <div class="content-card">
+
+                <div class="card-header">
+                    <h3>Database Record</h3>
+                </div>
+
+                <div class="raw-record" id="rawRecord">
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- No Result -->
+        <section id="noResult" class="no-result hidden">
+
+            <div class="no-result-icon">
+                ?
+            </div>
+
+            <h3>PDB ID <span id="noResultId"></span> not found</h3>
+
+            <p>
+                No matching structure was found in this database.
+            </p>
+
+            <p class="hint">
+                Check the four-character identifier and try again.
+            </p>
+
+        </section>
+
+
+        <!-- Initial Information -->
+        <section id="initialMessage" class="initial-message">
+
+            <div class="initial-icon" aria-hidden="true">
+                <span class="initial-icon-ring"></span>
+                <span class="initial-icon-core">P</span>
+            </div>
+
+            <h3>Your next discovery starts here</h3>
+
+            <p>
+                Enter a PDB ID above to reveal diffusion measurements and
+                organism details for that structure.
+            </p>
+
+        </section>
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="site-footer">
+
+        <div>
+            PDB Diffusion Database
+        </div>
+
+        <div>
+            FRET <span>·</span> DET <span>·</span> Protein Structure Analysis
+        </div>
+
+    </footer>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
