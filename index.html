@@ -84,6 +84,81 @@
 
         </section>
 
+        <section class="fret-upload-section" aria-labelledby="fretUploadHeading">
+            <div class="section-label">
+                <span class="label-spark" aria-hidden="true"></span>
+                LOCAL PDB CALCULATION
+            </div>
+            <h2 id="fretUploadHeading">Calculate transfer for your PDB</h2>
+            <p class="search-description">
+                Calculate FRET, Dexter Energy Transfer (DET), or both for one
+                structure. Both models run locally and may take a few moments.
+            </p>
+            <form id="fretUploadForm" class="fret-upload-form">
+                <label for="pdbFile">PDB file</label>
+                <div class="fret-upload-controls">
+                    <input
+                        id="pdbFile"
+                        name="pdbFile"
+                        type="file"
+                        accept=".pdb,.ent,chemical/x-pdb"
+                        required
+                        aria-describedby="fretUploadHint"
+                    >
+                </div>
+                <fieldset class="calculation-choice" aria-describedby="calculationChoiceHint">
+                    <legend>Choose calculation</legend>
+                    <label class="calculation-option">
+                        <input type="radio" name="calculation" value="fret">
+                        <span>
+                            <strong>FRET</strong>
+                            <small>Förster transfer model</small>
+                        </span>
+                    </label>
+                    <label class="calculation-option">
+                        <input type="radio" name="calculation" value="det">
+                        <span>
+                            <strong>DET</strong>
+                            <small>Dexter transfer model</small>
+                        </span>
+                    </label>
+                    <label class="calculation-option">
+                        <input type="radio" name="calculation" value="both" checked>
+                        <span>
+                            <strong>Both</strong>
+                            <small>Run and compare both models</small>
+                        </span>
+                    </label>
+                </fieldset>
+                <p id="calculationChoiceHint" class="fret-upload-hint">
+                    Each model is calculated independently from the same PDB file.
+                </p>
+                <div class="fret-upload-controls fret-submit-controls">
+                    <button id="fretUploadButton" type="submit" disabled>
+                        <span>Calculate both</span>
+                        <span class="button-arrow" aria-hidden="true">→</span>
+                    </button>
+                </div>
+                <p id="fretUploadHint" class="fret-upload-hint">
+                    PDB files up to 25 MiB. Calculations are available when running
+                    the local Python server; GitHub Pages cannot run them.
+                </p>
+                <div id="fretUploadStatus" class="fret-upload-status" role="status" aria-live="polite">
+                    Checking local calculator…
+                </div>
+                <div id="fretUploadResult" class="fret-upload-results hidden" aria-live="polite">
+                    <div id="fretResultRow" class="fret-upload-result fret-result">
+                        <span>FRET diffusion length</span>
+                        <strong id="fretUploadValue">—</strong>
+                    </div>
+                    <div id="detResultRow" class="fret-upload-result det-result">
+                        <span>DET diffusion length</span>
+                        <strong id="detUploadValue">—</strong>
+                    </div>
+                    <p id="fretUploadResultError" class="fret-upload-result-error hidden" role="alert"></p>
+                </div>
+            </form>
+        </section>
 
         <!-- Result -->
         <section id="resultSection" class="result-section hidden">
@@ -308,6 +383,7 @@
 
 
     <script src="script.js"></script>
+    <script src="fret_upload.js"></script>
 
 </body>
 </html>

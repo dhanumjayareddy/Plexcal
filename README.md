@@ -49,6 +49,50 @@ Git tracking before pushing: each generated database file exceeds GitHub's
 
 ## Run the optional local API
 
-Run `python server.py` and open <http://127.0.0.1:8000>. The first launch builds
-a SQLite index in `data/`; later launches reuse it and rebuild it if the source
-CSV changes. No third-party Python packages are required.
+Install the calculation dependencies and start the app:
+
+```text
+python -m pip install -r requirements.txt
+python server.py
+```
+
+Open <http://127.0.0.1:8000>. The first launch builds a SQLite index in `data/`;
+later launches reuse it and rebuild it if the source CSV changes. To calculate
+FRET, Dexter Energy Transfer (DET), or both for a local structure, upload a PDB
+file in the local calculation form and choose the desired model. Both models
+run independently on the same uploaded file. The calculation runs on the local
+machine; uploads are limited to 25 MiB and are removed after calculation.
+GitHub Pages supports database lookups only; it cannot run uploaded-file
+calculations.
+
+The uploaded-file calculator is a Python translation of
+`process_single_pdb_v1.m`. Its Monte Carlo calculation uses 10,000 excitation
+trajectories with up to 1,000 transitions per trajectory. Because Python and
+MATLAB use different random-number streams, the result is not guaranteed to
+match MATLAB's result bit-for-bit.
+
+## Process a folder of PDB files in parallel
+
+To calculate diffusion lengths for the PDB files in `all_proteins_pdb/` using
+the same calculation as the single-file processor, run:
+
+```text
+python process_all_pdbs.py
+```
+
+The script uses up to four worker processes by default and writes
+`all_proteins_pdb/diffusion_lengths.csv` with each PDB filename and its
+diffusion length in Angstroms. To choose another worker count, pass
+`--workers`, for example `python process_all_pdbs.py --workers 2`. The existing
+`process_single_pdb.py` calculation is imported as-is and is not modified.
+
+For a detailed explanation of the single-PDB workflow, input interpretation,
+physical model, equations, and limitations, see
+[PROCESS_SINGLE_PDB.md](PROCESS_SINGLE_PDB.md).
+
+The separate distance-exponential DET calculation translated from
+`det_code_clean.m` is available as `det_code_clean.py`. Run it on one structure
+with `python det_code_clean.py "1TUB.pdb" 0`; see
+[DET_CODE_CLEAN.md](DET_CODE_CLEAN.md) for its workflow and equations. It does
+not replace `process_single_pdb.py`. The local upload form lets users run
+either model independently or calculate both and compare their results.

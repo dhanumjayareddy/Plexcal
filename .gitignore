@@ -3,3 +3,5 @@ data/pdb_database.sqlite
 data/pdb_database.sqlite.tmp
 /pdb_database.json
 /data/pdb_database.json
+.pytest_cache/
+*.pdb

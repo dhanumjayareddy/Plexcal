@@ -12,6 +12,7 @@ ASSETS = {
     ROOT / "index.html": PAGES_DIR / "index.html",
     ROOT / "style.css": PAGES_DIR / "style.css",
     ROOT / "github_pages.js": PAGES_DIR / "script.js",
+    ROOT / "fret_upload.js": PAGES_DIR / "fret_upload.js",
 }
 SHARD_TARGET_BYTES = 900_000
 
