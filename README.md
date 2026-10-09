@@ -19,7 +19,10 @@ Open <http://127.0.0.1:8000>. The structure workspace loads an uploaded PDB,
 an RCSB PDB ID, or an AlphaFold structure ID into the PDBe Mol* viewer.
 Uploads are previewed as soon as they are selected; ID-based previews can be
 loaded independently of calculation. The viewer keeps its Mol* sequence,
-selection, component, representation, and display controls available.
+selection, component, representation, and display controls available. The
+visibility panel can independently toggle protein polymers, ligands and other
+heteroatoms, water, carbohydrates, non-standard residues, and density maps;
+native Mol* controls also provide structure rotation and representation options.
 
 RCSB structures include deposited structure details, organism, experimental
 method, resolution, and the primary citation when supplied by RCSB. AlphaFold

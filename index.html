@@ -82,9 +82,17 @@
                                 <p>Structure preview appears here</p>
                             </div>
                         </div>
+                        <fieldset id="structureVisibilityControls" class="structure-visibility-controls" disabled>
+                            <legend>Structure visibility</legend>
+                            <label><input type="checkbox" data-structure-visibility="polymer" checked> Protein polymers</label>
+                            <label><input type="checkbox" data-structure-visibility="het" checked> Ligands &amp; heteroatoms</label>
+                            <label><input type="checkbox" data-structure-visibility="water" checked> Water</label>
+                            <label><input type="checkbox" data-structure-visibility="carbs" checked> Carbohydrates</label>
+                            <label><input type="checkbox" data-structure-visibility="nonStandard" checked> Non-standard residues</label>
+                            <label><input type="checkbox" data-structure-visibility="maps" checked> Density maps</label>
+                        </fieldset>
                         <div class="viewer-footer">
-                            <span>Chromophore residues: TRP · TYR · PHE</span>
-                            <span class="viewer-provider">Interactive Mol*</span>
+                            <span>Use these layer toggles or open the native Mol* controls for representations, rotation, and component settings.</span>
                         </div>
                     </section>
 

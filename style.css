@@ -2632,3 +2632,209 @@ main {
         text-align: center;
     }
 }
+
+body {
+    font-size: 16px;
+}
+
+.brand-caption {
+    font-size: 12px;
+}
+
+.section-kicker,
+.viewer-label {
+    font-size: 12px;
+}
+
+.hero-lede,
+.workflow-note p,
+.input-card-heading p,
+.field-hint,
+.status-message,
+.viewer-heading p,
+.metadata-status,
+.metadata-list dt,
+.metadata-list dd,
+.metadata-source-badge,
+.metadata-links a,
+.analysis-heading p,
+.analysis-units,
+.analysis-input-summary,
+.result-state,
+.metric-list dt,
+.metric-list dd,
+.page-footer {
+    font-size: 14px;
+}
+
+.method-chips > span,
+.input-card-heading h2,
+.structure-input-card > label,
+.structure-input-card #uploadSourceFields > label,
+.structure-input-card #identifierSourceFields > label,
+.structure-input-card select,
+.structure-input-card input[type="file"],
+.structure-input-card input[type="text"],
+.primary-button,
+.secondary-button,
+.viewer-heading h2,
+.page-footer > span {
+    font-size: 15px;
+}
+
+.viewer-footer {
+    min-height: 48px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.structure-visibility-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 11px 18px;
+    border: 0;
+    border-top: 1px solid #e7edef;
+    padding: 13px 15px;
+}
+
+.structure-visibility-controls legend {
+    padding: 0 6px;
+    color: #274555;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.structure-visibility-controls label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #506877;
+    font-size: 14px;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.structure-visibility-controls input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+}
+
+.structure-visibility-controls:disabled {
+    opacity: 0.55;
+}
+
+.analysis-heading h2,
+.metadata-header h2,
+.method-result h3,
+.chart-card-title h3 {
+    font-size: 18px;
+}
+
+.metadata-header h2 {
+    font-size: 19px;
+}
+
+.metric-list dt,
+.metric-list dd {
+    font-size: 15px;
+}
+
+.method-index {
+    font-size: 12px;
+}
+
+.chart-card-title > span {
+    font-size: 12px;
+}
+
+.chart-card-title small {
+    font-size: 13px;
+}
+
+.comparison-chart {
+    min-height: 245px;
+    align-items: flex-end;
+    padding: 12px 8px 8px;
+}
+
+.chart-column {
+    height: 220px;
+    gap: 5px;
+}
+
+.chart-bar-pair {
+    height: 190px;
+    align-items: flex-end;
+    gap: 9px;
+}
+
+.chart-bar-unit {
+    display: flex;
+    min-width: 0;
+    height: 100%;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.chart-value {
+    min-height: 18px;
+    color: #334d5a;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 18px;
+    white-space: nowrap;
+}
+
+.chart-label {
+    min-height: 18px;
+    font-size: 14px;
+    line-height: 18px;
+}
+
+.chart-kind-label,
+.chart-legend {
+    font-size: 13px;
+}
+
+.chart-kind-label {
+    min-height: 17px;
+    color: #657a86;
+    line-height: 17px;
+    white-space: nowrap;
+}
+
+.chart-legend {
+    gap: 12px 18px;
+    margin-top: 12px;
+}
+
+.chart-bar {
+    max-width: 46px;
+}
+
+@media (max-width: 540px) {
+    .brand-caption {
+        font-size: 12px;
+    }
+
+    .hero-lede {
+        font-size: 15px;
+    }
+
+    .structure-visibility-controls {
+        gap: 10px 14px;
+    }
+
+    .structure-visibility-controls label {
+        font-size: 14px;
+    }
+
+    .chart-value {
+        font-size: 13px;
+    }
+}

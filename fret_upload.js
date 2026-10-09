@@ -13,6 +13,7 @@ const previewButton = document.getElementById("loadStructurePreview");
 const viewer = document.getElementById("structureViewer");
 const viewerStatus = document.getElementById("structureViewerStatus");
 const expandButton = document.getElementById("expandStructureViewer");
+const visibilityControls = document.getElementById("structureVisibilityControls");
 const metadataStatus = document.getElementById("structureMetadataStatus");
 const metadataList = document.getElementById("structureMetadata");
 const metadataLinks = document.getElementById("structureMetadataLinks");
@@ -298,20 +299,27 @@ function displayModelMetrics(method, metrics) {
 function createBar(value, maximum, colorClass, valueLabel) {
     const column = document.createElement("div");
     column.className = "chart-column";
+    const barArea = document.createElement("div");
+    barArea.className = "chart-bar-pair";
+    const unit = document.createElement("div");
+    unit.className = "chart-bar-unit";
     const valueElement = document.createElement("span");
     valueElement.className = "chart-value";
     valueElement.textContent = value === null ? "—" : valueLabel(value);
-    const barArea = document.createElement("div");
-    barArea.className = "chart-bar-pair";
     const bar = document.createElement("div");
     bar.className = `chart-bar ${colorClass}`;
-    bar.style.height =
-        `${value === null || maximum <= 0 ? 0 : (value / maximum) * 140}px`;
+    const barHeight =
+        value === null || maximum <= 0 ? 0 : (value / maximum) * 140;
+    bar.style.height = `${barHeight}px`;
+    if (value !== null && value > 0) {
+        bar.style.minHeight = "2px";
+    }
     bar.setAttribute("aria-hidden", "true");
-    barArea.append(bar);
+    unit.append(valueElement, bar);
+    barArea.append(unit);
     const modelLabel = document.createElement("span");
     modelLabel.className = "chart-label";
-    column.append(valueElement, barArea, modelLabel);
+    column.append(barArea, modelLabel);
     return { column, modelLabel };
 }
 
@@ -363,30 +371,39 @@ function renderPairCountChart(chart, fret, det) {
     for (const group of groups) {
         const column = document.createElement("div");
         column.className = "chart-column";
-        const valueLabel = document.createElement("span");
-        valueLabel.className = "chart-value";
-        valueLabel.textContent =
-            `Total ${formatMetric(group.total, 0)} · Coherent ${formatMetric(group.coherent, 0)}`;
         const bars = document.createElement("div");
         bars.className = "chart-bar-pair";
         for (const [value, kind] of [
             [group.total, "total"],
             [group.coherent, "coherent"],
         ]) {
+            const unit = document.createElement("div");
+            unit.className = "chart-bar-unit";
+            const valueLabel = document.createElement("span");
+            valueLabel.className = "chart-value";
+            valueLabel.textContent = formatMetric(value, 0);
             const bar = document.createElement("div");
             bar.className = `chart-bar ${group.color} ${kind}`;
-            bar.style.height =
-                `${value === null || maximum <= 0 ? 0 : (value / maximum) * 140}px`;
+            const barHeight =
+                value === null || maximum <= 0 ? 0 : (value / maximum) * 140;
+            bar.style.height = `${barHeight}px`;
+            if (value !== null && value > 0) {
+                bar.style.minHeight = "2px";
+            }
             bar.setAttribute(
                 "aria-label",
                 `${group.name} ${kind}: ${formatMetric(value, 0)}`,
             );
-            bars.append(bar);
+            const kindLabel = document.createElement("span");
+            kindLabel.className = "chart-kind-label";
+            kindLabel.textContent = kind === "total" ? "Total" : "Coherent";
+            unit.append(valueLabel, bar, kindLabel);
+            bars.append(unit);
         }
         const modelLabel = document.createElement("span");
         modelLabel.className = "chart-label";
         modelLabel.textContent = group.name;
-        column.append(valueLabel, bars, modelLabel);
+        column.append(bars, modelLabel);
         chart.append(column);
     }
     addLegend(chart, [
@@ -580,15 +597,34 @@ async function openStructureViewer(source, identifier, uploadedFile = null) {
             return;
         }
         activeStructureKey = structureKey;
+        visibilityControls.disabled = false;
         document.getElementById("viewerPlaceholder").classList.add("hidden");
         viewerStatus.textContent = isAlphaFold
             ? "AlphaFold model loaded. Full Mol* sequence, representation, selection, and display controls are available."
             : "Structure loaded. Full Mol* sequence, representation, selection, and display controls are available.";
+        await applyInitialStructureVisibility();
     } catch (error) {
         if (sequence === viewerLoadSequence) {
             viewerStatus.textContent = error.message || "Could not load this structure.";
             document.getElementById("viewerPlaceholder").classList.remove("hidden");
             console.error("3D structure viewer error:", error);
+        }
+    }
+}
+
+async function applyInitialStructureVisibility() {
+    for (const checkbox of visibilityControls.querySelectorAll(
+        "[data-structure-visibility]",
+    )) {
+        try {
+            await viewerInstance.visual.visibility({
+                [checkbox.dataset.structureVisibility]: checkbox.checked,
+            });
+        } catch (error) {
+            viewerStatus.textContent =
+                `Could not set ${checkbox.parentElement.textContent.trim()} visibility: ${error.message || error}`;
+            console.error("Mol* initial visibility error:", error);
+            return;
         }
     }
 }
@@ -710,6 +746,22 @@ async function checkFretCalculator() {
 
 expandButton.addEventListener("click", () => {
     viewerInstance?.canvas.toggleExpanded();
+});
+
+visibilityControls.addEventListener("change", async (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement) || !target.dataset.structureVisibility) {
+        return;
+    }
+    try {
+        await viewerInstance?.visual.visibility({
+            [target.dataset.structureVisibility]: target.checked,
+        });
+    } catch (error) {
+        viewerStatus.textContent =
+            `Could not update structure visibility: ${error.message || error}`;
+        console.error("Mol* visibility update error:", error);
+    }
 });
 
 sourceInput.addEventListener("change", updateInputSource);
