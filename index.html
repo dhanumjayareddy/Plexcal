@@ -91,51 +91,50 @@
             </div>
             <h2 id="fretUploadHeading">Calculate transfer for your PDB</h2>
             <p class="search-description">
-                Calculate FRET, Dexter Energy Transfer (DET), or both for one
-                structure. Both models run locally and may take a few moments.
+                Compare FRET and Dexter Energy Transfer (DET) for an uploaded
+                structure, an RCSB PDB ID, or an AlphaFold structure ID.
             </p>
             <form id="fretUploadForm" class="fret-upload-form">
-                <label for="pdbFile">PDB file</label>
+                <label for="inputSource">Structure source</label>
                 <div class="fret-upload-controls">
-                    <input
-                        id="pdbFile"
-                        name="pdbFile"
-                        type="file"
-                        accept=".pdb,.ent,chemical/x-pdb"
-                        required
-                        aria-describedby="fretUploadHint"
-                    >
+                    <select id="inputSource" name="inputSource">
+                        <option value="upload">Upload a PDB file</option>
+                        <option value="rcsb">RCSB PDB ID</option>
+                        <option value="alphafold">AlphaFold structure ID</option>
+                    </select>
                 </div>
-                <fieldset class="calculation-choice" aria-describedby="calculationChoiceHint">
-                    <legend>Choose calculation</legend>
-                    <label class="calculation-option">
-                        <input type="radio" name="calculation" value="fret">
-                        <span>
-                            <strong>FRET</strong>
-                            <small>Förster transfer model</small>
-                        </span>
-                    </label>
-                    <label class="calculation-option">
-                        <input type="radio" name="calculation" value="det">
-                        <span>
-                            <strong>DET</strong>
-                            <small>Dexter transfer model</small>
-                        </span>
-                    </label>
-                    <label class="calculation-option">
-                        <input type="radio" name="calculation" value="both" checked>
-                        <span>
-                            <strong>Both</strong>
-                            <small>Run and compare both models</small>
-                        </span>
-                    </label>
-                </fieldset>
-                <p id="calculationChoiceHint" class="fret-upload-hint">
-                    Each model is calculated independently from the same PDB file.
-                </p>
+                <div id="uploadSourceFields">
+                    <label for="pdbFile">PDB file</label>
+                    <div class="fret-upload-controls">
+                        <input
+                            id="pdbFile"
+                            name="pdbFile"
+                            type="file"
+                            accept=".pdb,.ent,chemical/x-pdb"
+                            aria-describedby="fretUploadHint"
+                        >
+                    </div>
+                </div>
+                <div id="idSourceFields" class="hidden">
+                    <label for="structureId">Structure ID</label>
+                    <div class="fret-upload-controls">
+                        <input
+                            id="structureId"
+                            name="structureId"
+                            type="text"
+                            autocomplete="off"
+                            placeholder="e.g. 1TUB or AF-P05067-F1"
+                            aria-describedby="structureIdHint"
+                        >
+                    </div>
+                    <p id="structureIdHint" class="fret-upload-hint">
+                        RCSB uses a four-character PDB ID. AlphaFold accepts a
+                        UniProt accession or AlphaFold structure ID.
+                    </p>
+                </div>
                 <div class="fret-upload-controls fret-submit-controls">
                     <button id="fretUploadButton" type="submit" disabled>
-                        <span>Calculate both</span>
+                        <span>Calculate FRET + DET</span>
                         <span class="button-arrow" aria-hidden="true">→</span>
                     </button>
                 </div>
@@ -146,16 +145,46 @@
                 <div id="fretUploadStatus" class="fret-upload-status" role="status" aria-live="polite">
                     Checking local calculator…
                 </div>
-                <div id="fretUploadResult" class="fret-upload-results hidden" aria-live="polite">
-                    <div id="fretResultRow" class="fret-upload-result fret-result">
-                        <span>FRET diffusion length</span>
-                        <strong id="fretUploadValue">—</strong>
-                    </div>
-                    <div id="detResultRow" class="fret-upload-result det-result">
-                        <span>DET diffusion length</span>
-                        <strong id="detUploadValue">—</strong>
+                <div id="fretUploadResult" class="analysis-results hidden" aria-live="polite">
+                    <h3 id="analysisTitle"></h3>
+                    <div class="analysis-model-grid">
+                        <section class="analysis-model-card fret-result" aria-labelledby="fretMetricsTitle">
+                            <h4 id="fretMetricsTitle">FRET</h4>
+                            <dl>
+                                <div><dt>Diffusion length</dt><dd id="fretUploadLength">—</dd></div>
+                                <div><dt>Total pairs</dt><dd id="fretUploadTotalPairs">—</dd></div>
+                                <div><dt>Coherent pairs</dt><dd id="fretUploadCoherentPairs">—</dd></div>
+                                <div><dt>Coherent pair fraction</dt><dd id="fretUploadFraction">—</dd></div>
+                            </dl>
+                        </section>
+                        <section class="analysis-model-card det-result" aria-labelledby="detMetricsTitle">
+                            <h4 id="detMetricsTitle">DET</h4>
+                            <dl>
+                                <div><dt>Diffusion length</dt><dd id="detUploadLength">—</dd></div>
+                                <div><dt>Total pairs</dt><dd id="detUploadTotalPairs">—</dd></div>
+                                <div><dt>Coherent pairs</dt><dd id="detUploadCoherentPairs">—</dd></div>
+                                <div><dt>Coherent pair fraction</dt><dd id="detUploadFraction">—</dd></div>
+                            </dl>
+                        </section>
                     </div>
                     <p id="fretUploadResultError" class="fret-upload-result-error hidden" role="alert"></p>
+                    <div class="analysis-charts">
+                        <section class="analysis-chart-card">
+                            <h4>Diffusion Length</h4>
+                            <p>Angstroms (Å); bars show each model</p>
+                            <div id="diffusionChart" class="comparison-chart" role="img" aria-label="Diffusion length comparison"></div>
+                        </section>
+                        <section class="analysis-chart-card">
+                            <h4>Pair Counts</h4>
+                            <p>Pairs; grouped by model</p>
+                            <div id="pairCountsChart" class="comparison-chart" role="img" aria-label="Total and coherent pair counts comparison"></div>
+                        </section>
+                        <section class="analysis-chart-card">
+                            <h4>Coherent Pair Fraction</h4>
+                            <p>Percentage (%); bars show each model</p>
+                            <div id="fractionChart" class="comparison-chart" role="img" aria-label="Coherent pair fraction comparison"></div>
+                        </section>
+                    </div>
                 </div>
             </form>
         </section>

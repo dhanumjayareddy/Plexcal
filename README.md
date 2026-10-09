@@ -57,13 +57,12 @@ python server.py
 ```
 
 Open <http://127.0.0.1:8000>. The first launch builds a SQLite index in `data/`;
-later launches reuse it and rebuild it if the source CSV changes. To calculate
-FRET, Dexter Energy Transfer (DET), or both for a local structure, upload a PDB
-file in the local calculation form and choose the desired model. Both models
-run independently on the same uploaded file. The calculation runs on the local
-machine; uploads are limited to 25 MiB and are removed after calculation.
-GitHub Pages supports database lookups only; it cannot run uploaded-file
-calculations.
+later launches reuse it and rebuild it if the source CSV changes. In the local
+calculation form, provide a PDB upload, an RCSB four-character PDB ID, or an
+AlphaFold/UniProt structure ID. Both models run on the resulting local PDB file.
+Uploads and downloads are limited to 25 MiB and temporary files are removed
+after calculation. GitHub Pages supports database lookups only; it cannot run
+structure calculations.
 
 The uploaded-file calculator is a Python translation of
 `process_single_pdb_v1.m`. Its Monte Carlo calculation uses 10,000 excitation
@@ -81,10 +80,11 @@ python process_all_pdbs.py
 ```
 
 The script uses up to four worker processes by default and writes
-`all_proteins_pdb/diffusion_lengths.csv` with each PDB filename and its
-diffusion length in Angstroms. To choose another worker count, pass
+`all_proteins_pdb/diffusion_lengths.csv` with each PDB filename, diffusion
+length in Angstroms, total chromophore pairs, coherent pairs, and coherent-pair
+fraction. To choose another worker count, pass
 `--workers`, for example `python process_all_pdbs.py --workers 2`. The existing
-`process_single_pdb.py` calculation is imported as-is and is not modified.
+diffusion-length calculation remains unchanged.
 
 For a detailed explanation of the single-PDB workflow, input interpretation,
 physical model, equations, and limitations, see
@@ -94,5 +94,7 @@ The separate distance-exponential DET calculation translated from
 `det_code_clean.m` is available as `det_code_clean.py`. Run it on one structure
 with `python det_code_clean.py "1TUB.pdb" 0`; see
 [DET_CODE_CLEAN.md](DET_CODE_CLEAN.md) for its workflow and equations. It does
-not replace `process_single_pdb.py`. The local upload form lets users run
-either model independently or calculate both and compare their results.
+not replace `process_single_pdb.py`. The local analysis form accepts an uploaded
+PDB, a four-character RCSB PDB ID, or a UniProt/AlphaFold structure ID. It runs
+both existing calculation functions on the resulting local PDB and displays
+the diffusion lengths, pair statistics, and unit-specific comparison charts.

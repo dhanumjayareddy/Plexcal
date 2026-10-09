@@ -114,7 +114,7 @@ def _build_transfer_parameter_matrix(residue_types: list[str]) -> np.ndarray:
 def _calculate_transfer_rates(
     distances_matrix_m: np.ndarray,
     transfer_parameter_matrix: np.ndarray,
-) -> np.ndarray:
+) -> tuple[np.ndarray, np.ndarray]:
     det_coupling_extrapolated_ev = (3.22e-2 / (1.4 * 1.4)) * np.exp(
         -(1e10 * 2.5579) * (distances_matrix_m - 4.15e-10)
     )
@@ -147,7 +147,7 @@ def _calculate_transfer_rates(
         np.isinf(det_rates_per_microsecond)
         | np.isnan(det_rates_per_microsecond)
     ] = 0.0
-    return det_rates_per_microsecond
+    return det_rates_per_microsecond, det_coupling_extrapolated_cm_minus_1
 
 
 def _simulate_diffusion_length(
@@ -239,21 +239,32 @@ def _simulate_diffusion_length(
 
 def process_single_pdb(
     pdb_filename: str | Path,
-    microtubule_diameter_angstrom: float,
+    # microtubule_diameter_angstrom: float,
     *,
     random_seed: int | None = None,
-) -> float:
-    """Return the DET-model mean endpoint displacement in Angstroms."""
+) -> dict[str, float | int | None]:
+    """Return the DET-model displacement and coherent-pair statistics."""
+    result: dict[str, float | int | None] = {
+        "diffusion_length_angstrom": float("nan"),
+        "total_pairs": float("nan"),
+        "coherent_pairs": float("nan"),
+        "coherent_pair_fraction": None,
+    }
     try:
-        microtubule_diameter = float(microtubule_diameter_angstrom)
-        microtubule_radius = microtubule_diameter / 2.0
-        _ = microtubule_radius
+        # microtubule_diameter = float(microtubule_diameter_angstrom)
+        # microtubule_radius = microtubule_diameter / 2.0
+        # _ = microtubule_radius
 
         atoms = _read_pdb_atoms(pdb_filename)
         residue_types, groups = _group_residues(atoms)
         number_of_molecules = len(residue_types)
         if number_of_molecules < 2:
-            return 0.0
+            result.update(
+                diffusion_length_angstrom=0.0,
+                total_pairs=number_of_molecules * (number_of_molecules - 1) // 2,
+                coherent_pairs=0,
+            )
+            return result
 
         positions_xyz = np.asarray(
             [_mean_omit_nan(coordinates) for _, coordinates in groups],
@@ -265,22 +276,40 @@ def process_single_pdb(
         distances_matrix_m = distances_matrix_angstrom * 10**-10
 
         transfer_parameter_matrix = _build_transfer_parameter_matrix(residue_types)
-        det_rates_per_microsecond = _calculate_transfer_rates(
+        (
+            det_rates_per_microsecond,
+            det_coupling_extrapolated_cm_minus_1,
+        ) = _calculate_transfer_rates(
             distances_matrix_m,
             transfer_parameter_matrix,
+        )
+        total_pairs = number_of_molecules * (number_of_molecules - 1) // 2
+        lower_triangle = np.tril(
+            np.ones(det_coupling_extrapolated_cm_minus_1.shape, dtype=bool), k=-1
+        )
+        coherent_pairs = int(
+            np.count_nonzero(
+                np.abs(det_coupling_extrapolated_cm_minus_1[lower_triangle]) > 53.052
+            )
+        )
+        result.update(
+            total_pairs=total_pairs,
+            coherent_pairs=coherent_pairs,
+            coherent_pair_fraction=coherent_pairs / total_pairs,
         )
         total_hops = int(np.sum(~np.isnan(det_rates_per_microsecond)))
         _ = total_hops
 
-        return _simulate_diffusion_length(
+        result["diffusion_length_angstrom"] = _simulate_diffusion_length(
             distances_matrix_angstrom,
             det_rates_per_microsecond,
             residue_types,
             random_seed=random_seed,
         )
+        return result
     except Exception as error:
         print(f"Error processing {pdb_filename}: {error}", file=sys.stderr)
-        return float("nan")
+        return result
 
 
 def main() -> None:
@@ -288,11 +317,11 @@ def main() -> None:
         description="Calculate the DET diffusion length for one PDB structure."
     )
     parser.add_argument("pdb_filename", help="Input PDB file")
-    parser.add_argument(
-        "microtubule_diameter_angstrom",
-        type=float,
-        help="Microtubule diameter in Angstroms (unused by the MATLAB algorithm)",
-    )
+    # parser.add_argument(
+    #     "microtubule_diameter_angstrom",
+    #     type=float,
+    #     help="Microtubule diameter in Angstroms (unused by the MATLAB algorithm)",
+    # )
     parser.add_argument(
         "--seed",
         type=int,
@@ -300,13 +329,12 @@ def main() -> None:
         help="Optional Python RNG seed for repeatable Monte Carlo runs",
     )
     args = parser.parse_args()
-    print(
-        process_single_pdb(
-            args.pdb_filename,
-            args.microtubule_diameter_angstrom,
-            random_seed=args.seed,
-        )
+    result = process_single_pdb(
+        args.pdb_filename,
+        # args.microtubule_diameter_angstrom,
+        random_seed=args.seed,
     )
+    print(result)
 
 
 if __name__ == "__main__":

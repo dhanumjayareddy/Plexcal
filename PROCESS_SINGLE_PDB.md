@@ -23,9 +23,13 @@ For one PDB structure, the program:
    1,000-step limit.
 6. Averages the start-to-end straight-line distance over those histories.
 
-The returned value is a **mean displacement in Angstroms**, not a path length
-(the sum of hop distances), a diffusion coefficient, or a conventional FRET
-efficiency.
+The function returns a dictionary containing `diffusion_length_angstrom`, a
+**mean displacement in Angstroms** (not a path length, diffusion coefficient,
+or conventional FRET efficiency), plus `total_pairs`, `coherent_pairs`, and
+`coherent_pair_fraction`. A coherent pair has an absolute coupling strictly
+greater than `53.052` cm⁻¹. Pairs are counted from the strict lower triangle of
+the coupling matrix, so each off-diagonal pair is counted once. The fraction is
+`None` when there are no pairs.
 
 ## Requirements and running one structure
 
@@ -67,8 +71,9 @@ alternate atom locations. These details can affect structures with reused
 residue numbering across chains or alternate conformations.
 
 If the file has no atom records, or has fewer than two selected residues, the
-function returns `0.0`. If parsing or calculation raises an exception, it
-prints an error to standard error and returns `NaN`.
+diffusion length is `0.0`; the pair count is zero and the fraction is `None`.
+If parsing or calculation raises an exception, the function prints an error to
+standard error and the diffusion length is `NaN`.
 
 ## Geometry and physical model
 
@@ -254,8 +259,10 @@ The batch script calls the existing `process_single_pdb()` function without
 changing its calculation, uses up to four worker processes by default, and
 writes results in sorted filename order to
 `all_proteins_pdb/diffusion_lengths.csv`. The CSV columns are
-`pdb_file` and `diffusion_length_angstrom`. A calculation error is represented
-by `NaN` in that file, in line with the single-PDB function's return value.
+`pdb_file`, `diffusion_length_angstrom`, `total_pairs`, `coherent_pairs`, and
+`coherent_pair_fraction`. Metrics unavailable because of a calculation error
+are represented by `NaN` or a blank fraction, in line with the single-PDB
+result.
 The output file is overwritten when the batch is run again.
 
 Choose another worker count with, for example:

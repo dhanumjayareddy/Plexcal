@@ -42,7 +42,8 @@ microtubule_diameter_angstrom, random_seed=None)` follows the MATLAB stages:
    code are not included in the grouping key, matching the MATLAB code's
    `resSeq` grouping.
 3. **Count and handle small inputs.** If fewer than two selected residues
-   exist, return `0.0`.
+   exist, the returned dictionary reports a diffusion length of `0.0`, zero
+   total and coherent pairs, and a `None` coherent-pair fraction.
 4. **Calculate residue positions.** For each residue, take the coordinate-wise
    mean of all atom coordinates, omitting NaNs as MATLAB's `mean(...,
    'omitnan')` does:
@@ -139,6 +140,14 @@ microtubule_diameter_angstrom, random_seed=None)` follows the MATLAB stages:
     Thus, the reported value is mean start-to-end displacement, not total hop
     path length or FRET efficiency.
 
+The function returns a dictionary with `diffusion_length_angstrom`,
+`total_pairs`, `coherent_pairs`, and `coherent_pair_fraction`. Coherent DET
+pairs use the strict threshold `abs(coupling) > 53.052` cm⁻¹ and only the
+strict lower triangle of the coupling matrix, counting each off-diagonal pair
+once. The fraction is `coherent_pairs / total_pairs`; it is `None` when the
+total pair count is zero. The command-line interface continues to print only
+the diffusion length.
+
 ## Error handling and implementation details
 
 - The only MATLAB function in the selected file,
@@ -147,8 +156,8 @@ microtubule_diameter_angstrom, random_seed=None)` follows the MATLAB stages:
   \(J\)-matrix construction, rate calculation, and simulation so each stage
   can be inspected independently.
 - As in the MATLAB `try/catch`, any processing exception is printed to
-  standard error and the function returns `NaN`. Fewer than two selected
-  residues returns `0.0`.
+  standard error and the `diffusion_length_angstrom` result is `NaN`. Fewer
+  than two selected residues reports a diffusion length of `0.0`.
 - The source computes `Total_hops`, the microtubule radius, and the
   per-time-step travelled-distance matrix, though they do not affect the
   returned average. The Python translation retains these calculations and

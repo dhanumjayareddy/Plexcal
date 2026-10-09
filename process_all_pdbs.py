@@ -15,9 +15,9 @@ PDB_DIRECTORY = Path(__file__).resolve().parent / "all_proteins_pdb"
 DEFAULT_WORKERS = max(1, min(4, os.cpu_count() or 1))
 
 
-def _process_one_pdb(pdb_path: Path) -> tuple[str, float]:
-    value = process_single_pdb(pdb_path, 0.0)
-    return pdb_path.name, value
+def _process_one_pdb(pdb_path: Path) -> tuple[str, dict]:
+    result = process_single_pdb(pdb_path, 0.0)
+    return pdb_path.name, result
 
 
 def main() -> int:
@@ -47,20 +47,37 @@ def main() -> int:
     if not pdb_files:
         parser.error(f"No .pdb files found in: {args.pdb_dir}")
 
-    results: dict[str, float] = {}
+    results: dict[str, dict] = {}
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
         futures = [executor.submit(_process_one_pdb, path) for path in pdb_files]
         for completed, future in enumerate(as_completed(futures), start=1):
-            pdb_name, value = future.result()
-            results[pdb_name] = value
+            pdb_name, result = future.result()
+            results[pdb_name] = result
             if completed % 25 == 0 or completed == len(pdb_files):
                 print(f"Processed {completed}/{len(pdb_files)} PDB files.", flush=True)
 
     output_path = args.pdb_dir / "diffusion_lengths.csv"
     with output_path.open("w", encoding="utf-8", newline="") as output_file:
         writer = csv.writer(output_file)
-        writer.writerow(("pdb_file", "diffusion_length_angstrom"))
-        writer.writerows((path.name, results[path.name]) for path in pdb_files)
+        writer.writerow(
+            (
+                "pdb_file",
+                "diffusion_length_angstrom",
+                "total_pairs",
+                "coherent_pairs",
+                "coherent_pair_fraction",
+            )
+        )
+        writer.writerows(
+            (
+                path.name,
+                results[path.name]["diffusion_length_angstrom"],
+                results[path.name]["total_pairs"],
+                results[path.name]["coherent_pairs"],
+                results[path.name]["coherent_pair_fraction"],
+            )
+            for path in pdb_files
+        )
 
     print(f"Saved {len(results)} results to {output_path}")
     return 0

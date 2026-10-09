@@ -137,29 +137,20 @@ def _calculate_ring_normals(groups, types, positions_xyz):
 
 def process_single_pdb(
     pdb_filename,
-    # microtubule_diameter_angstrom,
+    microtubule_diameter_angstrom,
     *,
     random_seed: int | None = None,
 ):
-    """Return diffusion length and coherent-pair metrics for one PDB structure."""
-    result = {
-        "diffusion_length_angstrom": float("nan"),
-        "total_pairs": float("nan"),
-        "coherent_pairs": float("nan"),
-        "coherent_pair_fraction": None,
-    }
+    """Return diffusion length in Angstroms; ``random_seed`` enables repeatable runs."""
     try:
         # These values are intentionally computed but unused in the MATLAB code.
-        # microtubule_diameter = float(microtubule_diameter_angstrom)
-        # microtubule_radius = microtubule_diameter / 2.0
-        # del microtubule_radius
+        microtubule_diameter = float(microtubule_diameter_angstrom)
+        microtubule_radius = microtubule_diameter / 2.0
+        del microtubule_radius
 
         atoms = _read_pdb_atoms(pdb_filename)
         if not atoms:
-            result.update(
-                diffusion_length_angstrom=0.0, total_pairs=0, coherent_pairs=0
-            )
-            return result
+            return 0.0
 
         residue_names = ("TRP", "TYR", "PHE")
         groups_by_type = {
@@ -173,12 +164,7 @@ def process_single_pdb(
         ]
         number_of_molecules = len(type_groups)
         if number_of_molecules < 2:
-            result.update(
-                total_pairs=number_of_molecules * (number_of_molecules - 1) // 2,
-                diffusion_length_angstrom=0.0,
-                coherent_pairs=0,
-            )
-            return result
+            return 0.0
 
         centroids = []
         for _, (_, _, coordinates) in type_groups:
@@ -218,20 +204,6 @@ def process_single_pdb(
                 / distances_matrix_m**3
             )
             coupling_cm_minus_1 = coupling_joules * (5.03e22)
-            total_pairs = number_of_molecules * (number_of_molecules - 1) // 2
-            lower_triangle = np.tril(
-                np.ones(coupling_cm_minus_1.shape, dtype=bool), k=-1
-            )
-            coherent_pairs = int(
-                np.count_nonzero(
-                    np.abs(coupling_cm_minus_1[lower_triangle]) > 53.052
-                )
-            )
-            result.update(
-                total_pairs=total_pairs,
-                coherent_pairs=coherent_pairs,
-                coherent_pair_fraction=coherent_pairs / total_pairs,
-            )
             fermi_rates_per_second = (
                 1.0
                 / (3.0e10 * (5.29e-12) ** 2)
@@ -276,11 +248,10 @@ def process_single_pdb(
                 starting_molecule, current_molecule
             ]
 
-        result["diffusion_length_angstrom"] = float(np.mean(distances_travelled))
-        return result
+        return float(np.mean(distances_travelled))
     except Exception as error:
         print(f"Error processing {pdb_filename}: {error}", file=sys.stderr)
-        return result
+        return float("nan")
 
 
 def main():
@@ -288,11 +259,11 @@ def main():
         description="Calculate a PDB diffusion length using the MATLAB-translated pipeline."
     )
     parser.add_argument("pdb_filename", help="Input PDB file")
-    # parser.add_argument(
-    #     "microtubule_diameter_angstrom",
-    #     type=float,
-    #     help="Microtubule diameter in Angstroms (unused by the MATLAB algorithm)",
-    # )
+    parser.add_argument(
+        "microtubule_diameter_angstrom",
+        type=float,
+        help="Microtubule diameter in Angstroms (unused by the MATLAB algorithm)",
+    )
     parser.add_argument(
         "--seed",
         type=int,
@@ -300,12 +271,13 @@ def main():
         help="Optional Python RNG seed for repeatable Monte Carlo runs",
     )
     args = parser.parse_args()
-    result = process_single_pdb(
-        args.pdb_filename,
-        # args.microtubule_diameter_angstrom,
-        random_seed=args.seed,
+    print(
+        process_single_pdb(
+            args.pdb_filename,
+            args.microtubule_diameter_angstrom,
+            random_seed=args.seed,
+        )
     )
-    print(result)
 
 
 if __name__ == "__main__":
