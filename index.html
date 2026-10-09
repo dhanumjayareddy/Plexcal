@@ -71,7 +71,10 @@
                                 <h2 id="viewerHeading">Molecular structure</h2>
                                 <p id="structureViewerStatus" role="status" aria-live="polite">Load a structure to begin interactive inspection.</p>
                             </div>
-                            <button type="button" id="expandStructureViewer" class="viewer-icon-button" aria-label="Expand viewer" title="Expand viewer">⛶</button>
+                            <button type="button" id="expandStructureViewer" class="viewer-icon-button viewer-tools-button" aria-label="Open full Mol* viewer tools" title="Open full Mol* viewer tools" disabled>
+                                <span aria-hidden="true">⛶</span>
+                                <span>Full viewer tools</span>
+                            </button>
                         </div>
                         <div class="viewer-stage">
                             <div id="structureViewer" class="structure-viewer" aria-label="Interactive protein structure"></div>
@@ -82,17 +85,19 @@
                                 <p>Structure preview appears here</p>
                             </div>
                         </div>
-                        <fieldset id="structureVisibilityControls" class="structure-visibility-controls" disabled>
-                            <legend>Structure visibility</legend>
-                            <label><input type="checkbox" data-structure-visibility="polymer" checked> Protein polymers</label>
-                            <label><input type="checkbox" data-structure-visibility="het" checked> Ligands &amp; heteroatoms</label>
-                            <label><input type="checkbox" data-structure-visibility="water" checked> Water</label>
-                            <label><input type="checkbox" data-structure-visibility="carbs" checked> Carbohydrates</label>
-                            <label><input type="checkbox" data-structure-visibility="nonStandard" checked> Non-standard residues</label>
-                            <label><input type="checkbox" data-structure-visibility="maps" checked> Density maps</label>
-                        </fieldset>
+                        <div class="chromophore-overlay-controls">
+                            <label class="chromophore-overlay-toggle">
+                                <input type="checkbox" id="toggleChromophoreOverlay" disabled>
+                                Highlight chromophores on a grey structure
+                            </label>
+                            <div class="chromophore-overlay-legend" aria-label="Chromophore highlight colors">
+                                <span><i class="trp-highlight"></i> TRP</span>
+                                <span><i class="tyr-highlight"></i> TYR</span>
+                                <span><i class="phe-highlight"></i> PHE</span>
+                            </div>
+                        </div>
                         <div class="viewer-footer">
-                            <span>Use these layer toggles or open the native Mol* controls for representations, rotation, and component settings.</span>
+                            <span>Full native Mol* controls are available in the viewer.</span>
                         </div>
                     </section>
 

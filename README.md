@@ -20,9 +20,11 @@ an RCSB PDB ID, or an AlphaFold structure ID into the PDBe Mol* viewer.
 Uploads are previewed as soon as they are selected; ID-based previews can be
 loaded independently of calculation. The viewer keeps its Mol* sequence,
 selection, component, representation, and display controls available. The
-visibility panel can independently toggle protein polymers, ligands and other
-heteroatoms, water, carbohydrates, non-standard residues, and density maps;
-native Mol* controls also provide structure rotation and representation options.
+complete native Mol* viewer provides the full structure, representation,
+component, and rotation controls. An optional chromophore overlay greys the
+rest of the structure and highlights TRP, TYR, and PHE in distinct colors.
+Select **Full viewer tools** above the structure to open Mol*'s complete
+expanded interface, including representation presets and measurements.
 
 RCSB structures include deposited structure details, organism, experimental
 method, resolution, and the primary citation when supplied by RCSB. AlphaFold

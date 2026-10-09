@@ -13,7 +13,7 @@ const previewButton = document.getElementById("loadStructurePreview");
 const viewer = document.getElementById("structureViewer");
 const viewerStatus = document.getElementById("structureViewerStatus");
 const expandButton = document.getElementById("expandStructureViewer");
-const visibilityControls = document.getElementById("structureVisibilityControls");
+const chromophoreOverlayToggle = document.getElementById("toggleChromophoreOverlay");
 const metadataStatus = document.getElementById("structureMetadataStatus");
 const metadataList = document.getElementById("structureMetadata");
 const metadataLinks = document.getElementById("structureMetadataLinks");
@@ -23,6 +23,7 @@ const analysisEmptyState = document.getElementById("analysisEmptyState");
 const maximumPdbBytes = 25 * 1024 * 1024;
 const resultStorageKey = "plexcalLatestAnalysis";
 let molstarScriptPromise;
+let molstarStylesPromise;
 let viewerInstance;
 let activeUploadUrl;
 let viewerLoadSequence = 0;
@@ -506,11 +507,48 @@ function restoreAnalysis() {
 }
 
 function loadMolstar() {
-    if (window.PDBeMolstarPlugin) {
-        return Promise.resolve();
+    if (!molstarStylesPromise) {
+        molstarStylesPromise = (async () => {
+            const sources = [
+                "https://cdn.jsdelivr.net/npm/pdbe-molstar@3.12.0/build/pdbe-molstar.css",
+                "https://unpkg.com/pdbe-molstar@3.12.0/build/pdbe-molstar.css",
+            ];
+            for (const source of sources) {
+                try {
+                    await new Promise((resolve, reject) => {
+                        const stylesheet = document.createElement("link");
+                        stylesheet.id = "pdbeMolstarStylesheet";
+                        stylesheet.rel = "stylesheet";
+                        stylesheet.href = source;
+                        stylesheet.onload = resolve;
+                        stylesheet.onerror = () => {
+                            stylesheet.remove();
+                            reject(new Error(`Could not load the Mol* stylesheet from ${source}.`));
+                        };
+                        const appStylesheet = document.querySelector('link[href$="style.css"]');
+                        if (appStylesheet) {
+                            appStylesheet.before(stylesheet);
+                        } else {
+                            document.head.append(stylesheet);
+                        }
+                    });
+                    return;
+                } catch (error) {
+                    if (source === sources[sources.length - 1]) {
+                        throw new Error(
+                            `The Mol* viewer styles could not be loaded. ${error.message}`,
+                        );
+                    }
+                }
+            }
+        })();
     }
     if (!molstarScriptPromise) {
         molstarScriptPromise = (async () => {
+            await molstarStylesPromise;
+            if (window.PDBeMolstarPlugin) {
+                return;
+            }
             const sources = [
                 "https://cdn.jsdelivr.net/npm/pdbe-molstar@3.12.0/build/pdbe-molstar-plugin.js",
                 "https://unpkg.com/pdbe-molstar@3.12.0/build/pdbe-molstar-plugin.js",
@@ -579,6 +617,9 @@ async function openStructureViewer(source, identifier, uploadedFile = null) {
             alphafoldView: isAlphaFold,
             sequencePanel: true,
             hideControls: false,
+            leftPanel: true,
+            rightPanel: true,
+            expanded: false,
             loadingOverlay: true,
             subscribeEvents: false,
             bgColor: { r: 255, g: 255, b: 255 },
@@ -597,12 +638,15 @@ async function openStructureViewer(source, identifier, uploadedFile = null) {
             return;
         }
         activeStructureKey = structureKey;
-        visibilityControls.disabled = false;
+        expandButton.disabled = false;
+        chromophoreOverlayToggle.disabled = false;
         document.getElementById("viewerPlaceholder").classList.add("hidden");
         viewerStatus.textContent = isAlphaFold
-            ? "AlphaFold model loaded. Full Mol* sequence, representation, selection, and display controls are available."
-            : "Structure loaded. Full Mol* sequence, representation, selection, and display controls are available.";
-        await applyInitialStructureVisibility();
+            ? "AlphaFold model loaded. Open Full viewer tools for Mol* representations, measurements, and display controls."
+            : "Structure loaded. Open Full viewer tools for Mol* representations, measurements, and display controls.";
+        if (chromophoreOverlayToggle.checked) {
+            await setChromophoreOverlay(true);
+        }
     } catch (error) {
         if (sequence === viewerLoadSequence) {
             viewerStatus.textContent = error.message || "Could not load this structure.";
@@ -612,20 +656,28 @@ async function openStructureViewer(source, identifier, uploadedFile = null) {
     }
 }
 
-async function applyInitialStructureVisibility() {
-    for (const checkbox of visibilityControls.querySelectorAll(
-        "[data-structure-visibility]",
-    )) {
-        try {
-            await viewerInstance.visual.visibility({
-                [checkbox.dataset.structureVisibility]: checkbox.checked,
-            });
-        } catch (error) {
-            viewerStatus.textContent =
-                `Could not set ${checkbox.parentElement.textContent.trim()} visibility: ${error.message || error}`;
-            console.error("Mol* initial visibility error:", error);
+async function setChromophoreOverlay(enabled) {
+    if (!viewerInstance) {
+        return;
+    }
+    try {
+        if (!enabled) {
+            await viewerInstance.visual.clearSelection();
             return;
         }
+        await viewerInstance.visual.select({
+            data: [
+                { label_comp_id: "TRP", color: "#159e9b" },
+                { label_comp_id: "TYR", color: "#8870c9" },
+                { label_comp_id: "PHE", color: "#d99836" },
+            ],
+            nonSelectedColor: "#c8cdd2",
+        });
+    } catch (error) {
+        chromophoreOverlayToggle.checked = !enabled;
+        viewerStatus.textContent =
+            `Could not ${enabled ? "apply" : "remove"} the chromophore overlay: ${error.message || error}`;
+        console.error("Mol* chromophore overlay error:", error);
     }
 }
 
@@ -745,23 +797,11 @@ async function checkFretCalculator() {
 }
 
 expandButton.addEventListener("click", () => {
-    viewerInstance?.canvas.toggleExpanded();
+    viewerInstance?.canvas.toggleExpanded(true);
 });
 
-visibilityControls.addEventListener("change", async (event) => {
-    const target = event.target;
-    if (!(target instanceof HTMLInputElement) || !target.dataset.structureVisibility) {
-        return;
-    }
-    try {
-        await viewerInstance?.visual.visibility({
-            [target.dataset.structureVisibility]: target.checked,
-        });
-    } catch (error) {
-        viewerStatus.textContent =
-            `Could not update structure visibility: ${error.message || error}`;
-        console.error("Mol* visibility update error:", error);
-    }
+chromophoreOverlayToggle.addEventListener("change", () => {
+    void setChromophoreOverlay(chromophoreOverlayToggle.checked);
 });
 
 sourceInput.addEventListener("change", updateInputSource);

@@ -2057,6 +2057,19 @@ main {
     font-size: 20px;
 }
 
+.viewer-tools-button {
+    display: inline-flex;
+    width: auto;
+    min-height: 38px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    color: #315261;
+    font-size: 13px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
 .viewer-icon-button:hover {
     border-color: #8abdb7;
     color: var(--primary);
@@ -2689,40 +2702,65 @@ body {
     line-height: 1.5;
 }
 
-.structure-visibility-controls {
+.chromophore-overlay-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 11px 18px;
-    border: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 18px;
     border-top: 1px solid #e7edef;
     padding: 13px 15px;
 }
 
-.structure-visibility-controls legend {
-    padding: 0 6px;
-    color: #274555;
-    font-size: 14px;
-    font-weight: 700;
-}
-
-.structure-visibility-controls label {
+.chromophore-overlay-toggle,
+.chromophore-overlay-legend,
+.chromophore-overlay-legend span {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    color: #506877;
+}
+
+.chromophore-overlay-toggle {
+    gap: 9px;
+    color: #334d5a;
     font-size: 14px;
+    font-weight: 650;
     line-height: 1.4;
     cursor: pointer;
 }
 
-.structure-visibility-controls input {
-    width: 16px;
-    height: 16px;
+.chromophore-overlay-toggle input {
+    width: 17px;
+    height: 17px;
     accent-color: var(--primary);
 }
 
-.structure-visibility-controls:disabled {
-    opacity: 0.55;
+.chromophore-overlay-legend {
+    flex-wrap: wrap;
+    gap: 12px;
+    color: #506877;
+    font-size: 13px;
+}
+
+.chromophore-overlay-legend span {
+    gap: 6px;
+}
+
+.chromophore-overlay-legend i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.trp-highlight {
+    background: #159e9b;
+}
+
+.tyr-highlight {
+    background: #8870c9;
+}
+
+.phe-highlight {
+    background: #d99836;
 }
 
 .analysis-heading h2,
@@ -2826,12 +2864,10 @@ body {
         font-size: 15px;
     }
 
-    .structure-visibility-controls {
-        gap: 10px 14px;
-    }
-
-    .structure-visibility-controls label {
-        font-size: 14px;
+    .chromophore-overlay-controls {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 9px;
     }
 
     .chart-value {
