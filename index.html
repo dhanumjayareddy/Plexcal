@@ -4,174 +4,285 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Structure-aware FRET and DET estimates of excitation energy-transfer diffusion length in aromatic proteins.">
+    <meta name="theme-color" content="#f3f5f6">
     <title>Plexcal | Excitation Energy-Transfer Diffusion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <a class="skip-link" href="#structureSource">Skip to structure input</a>
+
     <header class="top-bar">
-        <a class="brand" href="./" aria-label="Plexcal home">PLEXCAL</a>
-        <div class="brand-caption">STRUCTURE-RESOLVED EXCITATION ENERGY TRANSFER</div>
+        <a class="brand" href="./" aria-label="Plexcal home">
+            <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+                <circle cx="12" cy="16" r="9" fill="none" stroke="#0b6e66" stroke-width="2"/>
+                <circle cx="20" cy="16" r="9" fill="none" stroke="#5c67bd" stroke-width="2"/>
+                <circle cx="16" cy="16" r="2.4" fill="#0e1c28"/>
+            </svg>
+            <span class="brand-name">Plexcal</span>
+        </a>
+        <nav class="top-nav" aria-label="Page sections">
+            <a href="#heroSection">Analyse</a>
+            <a href="#method">How it works</a>
+            <a href="#results">Results</a>
+            <a href="#glossary">Glossary</a>
+        </nav>
+        <div class="brand-caption">Excitation energy transfer in proteins</div>
     </header>
 
     <main>
+        <!-- ============ Analyse ============ -->
         <section class="search-section scientific-hero" id="heroSection">
-                <form id="fretUploadForm" class="hero-copy">
-                    <div class="section-kicker"><span class="kicker-mark"></span> Molecular photophysics workspace</div>
-                    <h1>Excitation energy-transfer <span>diffusion lengths</span></h1>
-                    <p class="hero-lede">Estimate how far electronic excitation migrates through aromatic residues in a protein structure. Compare the existing FRET and distance-exponential DET models using one shared PDB structure.</p>
+            <div class="hero-copy">
+                <h1>How far does excitation energy travel through a protein?</h1>
+                <p class="hero-lede">Aromatic amino acids absorb ultraviolet light and can pass that energy to their neighbours. Plexcal reads a protein structure and measures how far the energy can spread, using two established transfer models side by side.</p>
 
-                    <div class="method-chips" aria-label="Analysis methods">
-                        <span><i class="method-dot fret-dot"></i>FRET</span>
-                        <span><i class="method-dot det-dot"></i>DET</span>
-                        <span>Length reported in Å</span>
+                <div class="method-chips" aria-label="Analysis methods">
+                    <span><i class="method-dot fret-dot"></i>FRET, long-range dipole coupling</span>
+                    <span><i class="method-dot det-dot"></i>DET, short-range electron exchange</span>
+                    <span>Distances in ångströms (Å)</span>
+                </div>
+
+                <form id="fretUploadForm" class="structure-input-card">
+                    <div class="input-card-heading">
+                        <span class="step-number">Step 1</span>
+                        <div>
+                            <h2>Choose a structure</h2>
+                            <p>Upload your own coordinates or fetch a published model.</p>
+                        </div>
                     </div>
 
-                    <div class="structure-input-card">
-                        <div class="input-card-heading">
-                            <span class="step-number">01</span>
-                            <div>
-                                <h2>Choose a structure</h2>
-                                <p>Upload coordinates or fetch a current database model.</p>
-                            </div>
-                        </div>
-                        <label for="structureSource">Structure source</label>
-                        <select id="structureSource" name="source">
-                            <option value="upload">Upload a PDB file</option>
-                            <option value="rcsb">RCSB Protein Data Bank</option>
-                            <option value="alphafold">AlphaFold Protein Structure Database</option>
-                        </select>
+                    <label for="structureSource">Structure source</label>
+                    <select id="structureSource" name="source">
+                        <option value="upload">Upload a PDB file</option>
+                        <option value="rcsb">RCSB Protein Data Bank</option>
+                        <option value="alphafold">AlphaFold Protein Structure Database</option>
+                    </select>
 
-                        <div id="uploadSourceFields">
-                            <label for="pdbFile">PDB coordinate file</label>
-                            <input type="file" id="pdbFile" name="pdb_file" accept=".pdb,.ent">
+                    <div id="uploadSourceFields">
+                        <label for="pdbFile">PDB coordinate file</label>
+                        <input type="file" id="pdbFile" name="pdb_file" accept=".pdb,.ent">
+                    </div>
+                    <div id="identifierSourceFields" class="hidden">
+                        <label for="structureIdentifier" id="structureIdentifierLabel">RCSB PDB ID</label>
+                        <div class="identifier-input-row">
+                            <input type="text" id="structureIdentifier" name="structure_id" autocomplete="off" placeholder="e.g. 1TUB">
+                            <button type="button" id="loadStructurePreview" class="secondary-button">Preview</button>
                         </div>
-                        <div id="identifierSourceFields" class="hidden">
-                            <label for="structureIdentifier" id="structureIdentifierLabel">RCSB PDB ID</label>
-                            <div class="identifier-input-row">
-                                <input type="text" id="structureIdentifier" name="structure_id" autocomplete="off" placeholder="e.g. 1TUB">
-                                <button type="button" id="loadStructurePreview" class="secondary-button">Preview</button>
-                            </div>
-                            <p class="field-hint" id="structureIdentifierHint">Enter a four-character PDB accession.</p>
-                        </div>
+                        <p class="field-hint" id="structureIdentifierHint">Enter a four-character PDB accession.</p>
+                    </div>
+
+                    <div class="action-row">
                         <button type="submit" id="calculateButton" class="primary-button">Calculate diffusion lengths</button>
-                        <p id="fretUploadStatus" class="status-message" role="status" aria-live="polite">Structure preview and calculation are independent actions.</p>
                     </div>
-
-                    <div class="workflow-note">
-                        <span class="workflow-line"></span>
-                        <p><strong>One structure, two analyses.</strong> Uploaded and downloaded PDBs pass through the same established FRET and DET calculation functions.</p>
-                    </div>
+                    <p id="fretUploadStatus" class="status-message" role="status" aria-live="polite">Structure preview and calculation are independent actions.</p>
+                    <p class="duration-note">Calculation looks at every pair of aromatic rings, so large proteins can take a minute or longer.</p>
                 </form>
 
-                <div class="hero-visual-column">
-                    <section class="viewer-card" aria-labelledby="viewerHeading">
-                        <div class="viewer-heading">
-                            <div>
-                                <div class="viewer-label">STRUCTURE EXPLORER</div>
-                                <h2 id="viewerHeading">Molecular structure</h2>
-                                <p id="structureViewerStatus" role="status" aria-live="polite">Load a structure to begin interactive inspection.</p>
-                            </div>
-                            <button type="button" id="expandStructureViewer" class="viewer-icon-button viewer-tools-button" aria-label="Open full Mol* viewer tools" title="Open full Mol* viewer tools" disabled>
-                                <span aria-hidden="true">⛶</span>
-                                <span>Full viewer tools</span>
-                            </button>
-                        </div>
-                        <div class="viewer-stage">
-                            <div id="structureViewer" class="structure-viewer" aria-label="Interactive protein structure"></div>
-                            <div id="viewerPlaceholder" class="viewer-placeholder">
-                                <span class="placeholder-orbit orbit-a"></span>
-                                <span class="placeholder-orbit orbit-b"></span>
-                                <span class="placeholder-core">P</span>
-                                <p>Structure preview appears here</p>
-                            </div>
-                        </div>
-                        <div class="chromophore-overlay-controls">
-                            <label class="chromophore-overlay-toggle">
-                                <input type="checkbox" id="toggleChromophoreOverlay" disabled>
-                                Highlight chromophores on a grey structure
-                            </label>
-                            <div class="chromophore-overlay-legend" aria-label="Chromophore highlight colors">
-                                <span><i class="trp-highlight"></i> TRP</span>
-                                <span><i class="tyr-highlight"></i> TYR</span>
-                                <span><i class="phe-highlight"></i> PHE</span>
-                            </div>
-                        </div>
-                        <div class="viewer-footer">
-                            <span>Full native Mol* controls are available in the viewer.</span>
-                        </div>
-                    </section>
-
-                    <section class="metadata-card" aria-labelledby="metadataHeading">
-                        <div class="metadata-header">
-                            <div>
-                                <div class="viewer-label">STRUCTURE RECORD</div>
-                                <h2 id="metadataHeading">Metadata & provenance</h2>
-                            </div>
-                            <span id="metadataSourceBadge" class="metadata-source-badge">Awaiting structure</span>
-                        </div>
-                        <p id="structureMetadataStatus" class="metadata-status">Structure title, organism, experimental details, and source publication will appear here when available.</p>
-                        <dl id="structureMetadata" class="metadata-list"></dl>
-                        <div id="structureMetadataLinks" class="metadata-links"></div>
-                    </section>
+                <div class="workflow-note">
+                    <span class="workflow-line"></span>
+                    <p><strong>One structure, two analyses.</strong> Uploaded and downloaded PDBs pass through the same established FRET and DET calculation functions, so the two results are directly comparable.</p>
                 </div>
-        </section>
+            </div>
 
-        <section class="fret-upload-section analysis-section">
-                <div class="analysis-heading">
-                    <div>
-                        <div class="section-kicker"><span class="step-number">02</span> Quantitative analysis</div>
-                        <h2>Diffusion-length results</h2>
-                        <p class="section-description">Compare FRET and DET diffusion length, pair counts, and coherent-pair fraction for the selected structure.</p>
-                    </div>
-                    <div class="analysis-units"><span>FRET</span><span>DET</span><span>Å · pairs · fraction</span></div>
-                </div>
-
-                <section id="fretUploadResult" class="result-section hidden" aria-live="polite">
-                    <div class="analysis-result-topline">
+            <div class="hero-visual-column">
+                <section class="viewer-card" aria-labelledby="viewerHeading">
+                    <div class="viewer-heading">
                         <div>
-                            <div class="viewer-label">COMPUTED FOR</div>
-                            <p id="analysisInputSummary" class="analysis-input-summary"></p>
+                            <h2 id="viewerHeading">Molecular structure</h2>
+                            <p id="structureViewerStatus" role="status" aria-live="polite">Load a structure to begin interactive inspection.</p>
                         </div>
-                        <span class="result-state"><i></i> Analysis complete</span>
+                        <button type="button" id="expandStructureViewer" class="viewer-icon-button viewer-tools-button" aria-label="Open full Mol* viewer tools" title="Open full Mol* viewer tools" disabled>
+                            <span aria-hidden="true">⛶</span>
+                            <span>Full viewer tools</span>
+                        </button>
                     </div>
-                    <p id="fretUploadResultError" class="error-message hidden" role="alert"></p>
-                    <div class="method-results">
-                        <section class="method-result" aria-labelledby="fretResultHeading">
-                            <div class="method-result-heading"><span class="method-index">A</span><h3 id="fretResultHeading">FRET</h3></div>
-                            <dl class="metric-list" id="fretMetrics"></dl>
-                        </section>
-                        <section class="method-result" aria-labelledby="detResultHeading">
-                            <div class="method-result-heading"><span class="method-index">B</span><h3 id="detResultHeading">DET</h3></div>
-                            <dl class="metric-list" id="detMetrics"></dl>
-                        </section>
+                    <div class="viewer-stage">
+                        <div id="structureViewer" class="structure-viewer" aria-label="Interactive protein structure"></div>
+                        <div id="viewerPlaceholder" class="viewer-placeholder">
+                            <span class="placeholder-orbit orbit-a"></span>
+                            <span class="placeholder-orbit orbit-b"></span>
+                            <span class="placeholder-core">P</span>
+                            <p>Your structure appears here</p>
+                        </div>
                     </div>
-                    <div class="charts-grid">
-                        <section class="chart-card">
-                            <div class="chart-card-title"><span>01</span><h3>Diffusion length <small>Å</small></h3></div>
-                            <div id="diffusionLengthChart" class="comparison-chart" role="img" aria-label="FRET versus DET diffusion length in angstroms"></div>
-                        </section>
-                        <section class="chart-card">
-                            <div class="chart-card-title"><span>02</span><h3>Chromophore pairs <small>count</small></h3></div>
-                            <div id="pairCountsChart" class="comparison-chart" role="img" aria-label="FRET and DET total and coherent pair counts"></div>
-                        </section>
-                        <section class="chart-card">
-                            <div class="chart-card-title"><span>03</span><h3>Coherent-pair fraction <small>%</small></h3></div>
-                            <div id="coherentPairFractionChart" class="comparison-chart" role="img" aria-label="FRET versus DET coherent pair fraction"></div>
-                        </section>
+                    <div class="chromophore-overlay-controls">
+                        <label class="chromophore-overlay-toggle">
+                            <input type="checkbox" id="toggleChromophoreOverlay" disabled>
+                            Highlight chromophores on a grey structure
+                        </label>
+                        <div class="chromophore-overlay-legend" aria-label="Chromophore highlight colors">
+                            <span><i class="trp-highlight"></i> Tryptophan</span>
+                            <span><i class="tyr-highlight"></i> Tyrosine</span>
+                            <span><i class="phe-highlight"></i> Phenylalanine</span>
+                        </div>
+                    </div>
+                    <div class="viewer-footer">
+                        <span>Chromophores are the light-absorbing side chains. Drag to rotate, scroll to zoom. Full native Mol* controls are available in the viewer.</span>
                     </div>
                 </section>
-                <div id="analysisEmptyState" class="analysis-empty-state">
-                    <span class="empty-state-symbol">Δ</span>
-                    <div><strong>Awaiting structure analysis</strong><p>Choose a structure above, then calculate to compare diffusion-length metrics.</p></div>
+
+                <section class="metadata-card" aria-labelledby="metadataHeading">
+                    <div class="metadata-header">
+                        <h2 id="metadataHeading">Metadata &amp; provenance</h2>
+                        <span id="metadataSourceBadge" class="metadata-source-badge">Awaiting structure</span>
+                    </div>
+                    <p id="structureMetadataStatus" class="metadata-status">Structure title, organism, experimental details, and source publication will appear here when available.</p>
+                    <dl id="structureMetadata" class="metadata-list"></dl>
+                    <div id="structureMetadataLinks" class="metadata-links"></div>
+                </section>
+            </div>
+        </section>
+
+        <!-- ============ Method / explainer ============ -->
+        <section class="method-section" id="method" aria-labelledby="methodHeading">
+            <div class="method-intro">
+                <h2 id="methodHeading">What is being measured</h2>
+                <p>When a tryptophan, tyrosine or phenylalanine ring absorbs a photon, it becomes <em>excited</em>. That energy does not have to stay put. It can hop to a nearby aromatic ring, then another, wandering through the protein until it is lost as fluorescence or heat.</p>
+                <p>The <strong>photoexcitation energy diffusion length</strong> is the typical distance this wandering excitation covers before it is lost. A longer length means the protein can carry excitation farther from where light first landed.</p>
+
+                <div class="model-pair">
+                    <article class="model-note fret-note">
+                        <h3><i class="method-dot fret-dot"></i>FRET <small>Förster resonance energy transfer</small></h3>
+                        <p>The excited ring acts like a tiny antenna and hands its energy to a neighbour through electromagnetic coupling, with no contact needed. The rate falls with the sixth power of distance, so it works over several ångströms and fades quickly beyond the Förster radius.</p>
+                        <span class="formula">k<sub>FRET</sub> ∝ r<sup>−6</sup></span>
+                    </article>
+                    <article class="model-note det-note">
+                        <h3><i class="method-dot det-dot"></i>DET <small>Dexter electron transfer</small></h3>
+                        <p>The two rings must nearly touch. Their electron clouds overlap and exchange the excitation directly. The rate falls exponentially with distance, so it dominates at very short range and vanishes almost completely by a few ångströms.</p>
+                        <span class="formula">k<sub>DET</sub> ∝ e<sup>−2r/L</sup></span>
+                    </article>
                 </div>
+            </div>
+
+            <figure class="decay-figure">
+                <svg viewBox="0 0 600 270" role="img" aria-labelledby="decayTitle decayDesc">
+                    <title id="decayTitle">How transfer probability falls with distance</title>
+                    <desc id="decayDesc">Illustrative curves. The FRET curve stays high out to roughly 10 ångströms and then drops. The DET curve drops steeply within a few ångströms.</desc>
+                    <g class="fig-grid">
+                        <line x1="50" y1="30" x2="560" y2="30"/>
+                        <line x1="50" y1="115" x2="560" y2="115"/>
+                        <line x1="50" y1="200" x2="560" y2="200" class="fig-axis"/>
+                        <line x1="50" y1="30" x2="50" y2="200" class="fig-axis"/>
+                    </g>
+                    <line x1="254" y1="30" x2="254" y2="200" class="fig-marker"/>
+                    <path class="fig-curve fig-fret" d="M50 30 L84 30 L118 30.2 L152 32.6 L186 43.8 L220 72.7 L254 115 L288 151.7 L322 174.3 L356 186.3 L390 192.4 L458 197.4 L526 198.9 L560 199.3"/>
+                    <path class="fig-curve fig-det" d="M50 30 L67 78 L84 112.8 L101 137.4 L118 155.1 L152 177 L186 188.2 L220 193.9 L288 198.4 L390 199.8 L560 200"/>
+                    <g class="fig-text">
+                        <text x="46" y="34" text-anchor="end">1</text>
+                        <text x="46" y="119" text-anchor="end">0.5</text>
+                        <text x="46" y="204" text-anchor="end">0</text>
+                        <text x="50" y="222" text-anchor="middle">0</text>
+                        <text x="220" y="222" text-anchor="middle">10</text>
+                        <text x="390" y="222" text-anchor="middle">20</text>
+                        <text x="560" y="222" text-anchor="middle">30</text>
+                        <text x="305" y="248" text-anchor="middle">Distance between two rings (Å)</text>
+                        <text x="262" y="48">Förster radius: half the energy is transferred</text>
+                        <text x="332" y="150" class="fig-label-fret">FRET</text>
+                        <text x="128" y="132" class="fig-label-det">DET</text>
+                        <text x="14" y="115" transform="rotate(-90 14 115)" text-anchor="middle">Relative transfer probability</text>
+                    </g>
+                </svg>
+                <figcaption>Illustrative shapes only, not computed from your structure. FRET reaches farther but is weaker up close; DET is strong only at near-contact.</figcaption>
+            </figure>
+        </section>
+
+        <!-- ============ Results ============ -->
+        <section class="fret-upload-section analysis-section" id="results">
+            <div class="analysis-heading">
+                <div>
+                    <div class="section-kicker"><span class="step-number">Step 2</span> Quantitative analysis</div>
+                    <h2>Diffusion-length results</h2>
+                    <p class="section-description">Compare FRET and DET diffusion length, pair counts, and the share of pairs that behave coherently for the selected structure. Not sure what a number means? See the guide below the results.</p>
+                </div>
+                <div class="analysis-units"><span>FRET</span><span>DET</span><span>Å, pairs, %</span></div>
+            </div>
+
+            <section id="fretUploadResult" class="result-section hidden" aria-live="polite">
+                <div class="analysis-result-topline">
+                    <div>
+                        <div class="viewer-label">Computed for</div>
+                        <p id="analysisInputSummary" class="analysis-input-summary"></p>
+                    </div>
+                    <span class="result-state"><i></i> Analysis complete</span>
+                </div>
+                <p id="fretUploadResultError" class="error-message hidden" role="alert"></p>
+                <div class="method-results">
+                    <section class="method-result" aria-labelledby="fretResultHeading">
+                        <div class="method-result-heading"><span class="method-index">A</span><h3 id="fretResultHeading">FRET</h3></div>
+                        <dl class="metric-list" id="fretMetrics"></dl>
+                    </section>
+                    <section class="method-result" aria-labelledby="detResultHeading">
+                        <div class="method-result-heading"><span class="method-index">B</span><h3 id="detResultHeading">DET</h3></div>
+                        <dl class="metric-list" id="detMetrics"></dl>
+                    </section>
+                </div>
+                <div class="charts-grid">
+                    <section class="chart-card">
+                        <div class="chart-card-title"><h3>Diffusion length <small>Å</small></h3></div>
+                        <p class="chart-caption">How far excitation spreads. Taller bar, longer reach.</p>
+                        <div id="diffusionLengthChart" class="comparison-chart" role="img" aria-label="FRET versus DET diffusion length in angstroms"></div>
+                    </section>
+                    <section class="chart-card">
+                        <div class="chart-card-title"><h3>Chromophore pairs <small>count</small></h3></div>
+                        <p class="chart-caption">Total pairs analysed, and how many of them are coherent.</p>
+                        <div id="pairCountsChart" class="comparison-chart" role="img" aria-label="FRET and DET total and coherent pair counts"></div>
+                    </section>
+                    <section class="chart-card">
+                        <div class="chart-card-title"><h3>Coherent-pair fraction <small>%</small></h3></div>
+                        <p class="chart-caption">Coherent pairs as a percentage of all pairs.</p>
+                        <div id="coherentPairFractionChart" class="comparison-chart" role="img" aria-label="FRET versus DET coherent pair fraction"></div>
+                    </section>
+                </div>
+            </section>
+
+            <div id="analysisEmptyState" class="analysis-empty-state">
+                <span class="empty-state-symbol">Δ</span>
+                <div><strong>No analysis yet</strong><p>Choose a structure above, then select Calculate diffusion lengths. Results and charts will appear in this space.</p></div>
+            </div>
+
+            <div class="glossary" id="glossary">
+                <h3>How to read these numbers</h3>
+                <dl class="glossary-list">
+                    <div>
+                        <dt>Diffusion length <span class="unit-tag">Å</span></dt>
+                        <dd>The typical distance excitation energy spreads through the protein before it is lost. One ångström is 0.1 nanometre, about the width of a single atom. Compare FRET and DET to see which mechanism carries energy farther in this structure.</dd>
+                    </div>
+                    <div>
+                        <dt>Chromophore pairs <span class="unit-tag">count</span></dt>
+                        <dd>A chromophore is a light-absorbing side chain: tryptophan, tyrosine or phenylalanine. A pair is any two of them close enough for energy to pass between them. More pairs means more routes for energy to travel.</dd>
+                    </div>
+                    <div>
+                        <dt>Coherent pairs</dt>
+                        <dd>Pairs where the coupling is strong enough that the excitation is shared between both rings in a wave-like way, rather than hopping randomly from one to the other. Coherent pairs move energy faster and more efficiently.</dd>
+                    </div>
+                    <div>
+                        <dt>Coherent-pair fraction <span class="unit-tag">%</span></dt>
+                        <dd>Coherent pairs divided by total pairs, times 100. If 40 of 200 pairs are coherent, the fraction is 20%. Near 0% means energy mostly hops; near 100% means almost every connection is wave-like. It is a share of the pairs, not a probability for any single pair.</dd>
+                    </div>
+                </dl>
+            </div>
         </section>
     </main>
 
     <footer class="page-footer">
-        <span>PLEXCAL</span>
+        <span>Plexcal</span>
         <p>Structure-aware excitation energy-transfer diffusion analysis</p>
-        <span>FRET / DET</span>
+        <span>FRET and DET</span>
     </footer>
+
+    <!-- Shown automatically while the Calculate button is disabled (see style.css) -->
+    <div class="calc-overlay" id="calcOverlay" role="status" aria-live="polite">
+        <div class="calc-panel">
+            <div class="calc-ring" aria-hidden="true"><span></span></div>
+            <h2>Running the simulation</h2>
+            <p class="calc-lead">Please wait. The simulations need time to finish.</p>
+            <p class="calc-detail">Plexcal is measuring the distance between every pair of aromatic rings, then evaluating both the FRET and DET models across them. Large structures can take a minute or longer, so please keep this tab open.</p>
+        </div>
+    </div>
+
     <script src="fret_upload.js"></script>
 </body>
 </html>
