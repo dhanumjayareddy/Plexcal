@@ -3,416 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>PDB Diffusion Database</title>
-
+    <meta name="description" content="Structure-aware FRET and DET estimates of excitation energy-transfer diffusion length in aromatic proteins.">
+    <title>Plexcal | Excitation Energy-Transfer Diffusion</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
-    <!-- Header -->
-    <header class="site-header">
-        <div class="header-container">
-            <div class="brand">
-                <div class="brand-mark" aria-hidden="true">PDB</div>
-
-                <div>
-                    <h1>PDB Diffusion Database</h1>
-                    <p>FRET and Dexter Energy Transfer Analysis</p>
-                </div>
-            </div>
-            <div class="dataset-indicator" id="connectionStatus" role="status">
-                <span class="status-dot"></span>
-                Connecting to database
-            </div>
-        </div>
+    <header class="top-bar">
+        <a class="brand" href="./" aria-label="Plexcal home">PLEXCAL</a>
+        <div class="brand-caption">STRUCTURE-RESOLVED EXCITATION ENERGY TRANSFER</div>
     </header>
 
+    <main>
+        <section class="search-section scientific-hero" id="heroSection">
+                <form id="fretUploadForm" class="hero-copy">
+                    <div class="section-kicker"><span class="kicker-mark"></span> Molecular photophysics workspace</div>
+                    <h1>Excitation energy-transfer <span>diffusion lengths</span></h1>
+                    <p class="hero-lede">Estimate how far electronic excitation migrates through aromatic residues in a protein structure. Compare the existing FRET and distance-exponential DET models using one shared PDB structure.</p>
 
-    <!-- Main -->
-    <main class="main-container">
+                    <div class="method-chips" aria-label="Analysis methods">
+                        <span><i class="method-dot fret-dot"></i>FRET</span>
+                        <span><i class="method-dot det-dot"></i>DET</span>
+                        <span>Length reported in Å</span>
+                    </div>
 
-        <!-- Search Section -->
-        <section class="search-section">
+                    <div class="structure-input-card">
+                        <div class="input-card-heading">
+                            <span class="step-number">01</span>
+                            <div>
+                                <h2>Choose a structure</h2>
+                                <p>Upload coordinates or fetch a current database model.</p>
+                            </div>
+                        </div>
+                        <label for="structureSource">Structure source</label>
+                        <select id="structureSource" name="source">
+                            <option value="upload">Upload a PDB file</option>
+                            <option value="rcsb">RCSB Protein Data Bank</option>
+                            <option value="alphafold">AlphaFold Protein Structure Database</option>
+                        </select>
 
-            <div class="section-label">
-                <span class="label-spark" aria-hidden="true"></span>
-                STRUCTURAL BIOLOGY · DATA EXPLORER
-            </div>
+                        <div id="uploadSourceFields">
+                            <label for="pdbFile">PDB coordinate file</label>
+                            <input type="file" id="pdbFile" name="pdb_file" accept=".pdb,.ent">
+                        </div>
+                        <div id="identifierSourceFields" class="hidden">
+                            <label for="structureIdentifier" id="structureIdentifierLabel">RCSB PDB ID</label>
+                            <div class="identifier-input-row">
+                                <input type="text" id="structureIdentifier" name="structure_id" autocomplete="off" placeholder="e.g. 1TUB">
+                                <button type="button" id="loadStructurePreview" class="secondary-button">Preview</button>
+                            </div>
+                            <p class="field-hint" id="structureIdentifierHint">Enter a four-character PDB accession.</p>
+                        </div>
+                        <button type="submit" id="calculateButton" class="primary-button">Calculate diffusion lengths</button>
+                        <p id="fretUploadStatus" class="status-message" role="status" aria-live="polite">Structure preview and calculation are independent actions.</p>
+                    </div>
 
-            <h2>Explore protein<br><span>diffusion data.</span></h2>
+                    <div class="workflow-note">
+                        <span class="workflow-line"></span>
+                        <p><strong>One structure, two analyses.</strong> Uploaded and downloaded PDBs pass through the same established FRET and DET calculation functions.</p>
+                    </div>
+                </form>
 
-            <p class="search-description">
-                Look up a Protein Data Bank structure to see its FRET and
-                Dexter diffusion lengths, organism, and full taxonomy.
-            </p>
+                <div class="hero-visual-column">
+                    <section class="viewer-card" aria-labelledby="viewerHeading">
+                        <div class="viewer-heading">
+                            <div>
+                                <div class="viewer-label">STRUCTURE EXPLORER</div>
+                                <h2 id="viewerHeading">Molecular structure</h2>
+                                <p id="structureViewerStatus" role="status" aria-live="polite">Load a structure to begin interactive inspection.</p>
+                            </div>
+                            <button type="button" id="expandStructureViewer" class="viewer-icon-button" aria-label="Expand viewer" title="Expand viewer">⛶</button>
+                        </div>
+                        <div class="viewer-stage">
+                            <div id="structureViewer" class="structure-viewer" aria-label="Interactive protein structure"></div>
+                            <div id="viewerPlaceholder" class="viewer-placeholder">
+                                <span class="placeholder-orbit orbit-a"></span>
+                                <span class="placeholder-orbit orbit-b"></span>
+                                <span class="placeholder-core">P</span>
+                                <p>Structure preview appears here</p>
+                            </div>
+                        </div>
+                        <div class="viewer-footer">
+                            <span>Chromophore residues: TRP · TYR · PHE</span>
+                            <span class="viewer-provider">Interactive Mol*</span>
+                        </div>
+                    </section>
 
-            <form class="search-box" id="searchForm">
-
-                <input
-                    type="text"
-                    id="pdbInput"
-                    placeholder="Try 1A00"
-                    autocomplete="off"
-                    spellcheck="false"
-                    maxlength="4"
-                    aria-label="Four-character PDB identifier"
-                    aria-describedby="searchHint"
-                >
-
-                <button id="searchButton" type="submit">
-                    <span>Find structure</span>
-                    <span class="button-arrow" aria-hidden="true">→</span>
-                </button>
-
-            </form>
-
-            <p class="search-hint" id="searchHint">
-                <span class="hint-key">↵</span> Press Enter to search
-                <span class="hint-divider">·</span>
-                <span id="recordCount">Preparing database index…</span>
-            </p>
-            <div class="search-status" id="searchStatus" role="status" aria-live="polite"></div>
-            <div class="hero-decoration" aria-hidden="true">
-                <span class="orbit orbit-one"></span>
-                <span class="orbit orbit-two"></span>
-                <span class="orbit-core">α</span>
-                <span class="orbit-dot orbit-dot-one"></span>
-                <span class="orbit-dot orbit-dot-two"></span>
-            </div>
-
+                    <section class="metadata-card" aria-labelledby="metadataHeading">
+                        <div class="metadata-header">
+                            <div>
+                                <div class="viewer-label">STRUCTURE RECORD</div>
+                                <h2 id="metadataHeading">Metadata & provenance</h2>
+                            </div>
+                            <span id="metadataSourceBadge" class="metadata-source-badge">Awaiting structure</span>
+                        </div>
+                        <p id="structureMetadataStatus" class="metadata-status">Structure title, organism, experimental details, and source publication will appear here when available.</p>
+                        <dl id="structureMetadata" class="metadata-list"></dl>
+                        <div id="structureMetadataLinks" class="metadata-links"></div>
+                    </section>
+                </div>
         </section>
 
-        <section class="fret-upload-section" aria-labelledby="fretUploadHeading">
-            <div class="section-label">
-                <span class="label-spark" aria-hidden="true"></span>
-                LOCAL PDB CALCULATION
-            </div>
-            <h2 id="fretUploadHeading">Calculate transfer for your PDB</h2>
-            <p class="search-description">
-                Compare FRET and Dexter Energy Transfer (DET) for an uploaded
-                structure, an RCSB PDB ID, or an AlphaFold structure ID.
-            </p>
-            <form id="fretUploadForm" class="fret-upload-form">
-                <label for="inputSource">Structure source</label>
-                <div class="fret-upload-controls">
-                    <select id="inputSource" name="inputSource">
-                        <option value="upload">Upload a PDB file</option>
-                        <option value="rcsb">RCSB PDB ID</option>
-                        <option value="alphafold">AlphaFold structure ID</option>
-                    </select>
-                </div>
-                <div id="uploadSourceFields">
-                    <label for="pdbFile">PDB file</label>
-                    <div class="fret-upload-controls">
-                        <input
-                            id="pdbFile"
-                            name="pdbFile"
-                            type="file"
-                            accept=".pdb,.ent,chemical/x-pdb"
-                            aria-describedby="fretUploadHint"
-                        >
+        <section class="fret-upload-section analysis-section">
+                <div class="analysis-heading">
+                    <div>
+                        <div class="section-kicker"><span class="step-number">02</span> Quantitative analysis</div>
+                        <h2>Diffusion-length results</h2>
+                        <p class="section-description">Compare FRET and DET diffusion length, pair counts, and coherent-pair fraction for the selected structure.</p>
                     </div>
+                    <div class="analysis-units"><span>FRET</span><span>DET</span><span>Å · pairs · fraction</span></div>
                 </div>
-                <div id="idSourceFields" class="hidden">
-                    <label for="structureId">Structure ID</label>
-                    <div class="fret-upload-controls">
-                        <input
-                            id="structureId"
-                            name="structureId"
-                            type="text"
-                            autocomplete="off"
-                            placeholder="e.g. 1TUB or AF-P05067-F1"
-                            aria-describedby="structureIdHint"
-                        >
+
+                <section id="fretUploadResult" class="result-section hidden" aria-live="polite">
+                    <div class="analysis-result-topline">
+                        <div>
+                            <div class="viewer-label">COMPUTED FOR</div>
+                            <p id="analysisInputSummary" class="analysis-input-summary"></p>
+                        </div>
+                        <span class="result-state"><i></i> Analysis complete</span>
                     </div>
-                    <p id="structureIdHint" class="fret-upload-hint">
-                        RCSB uses a four-character PDB ID. AlphaFold accepts a
-                        UniProt accession or AlphaFold structure ID.
-                    </p>
-                </div>
-                <div class="fret-upload-controls fret-submit-controls">
-                    <button id="fretUploadButton" type="submit" disabled>
-                        <span>Calculate FRET + DET</span>
-                        <span class="button-arrow" aria-hidden="true">→</span>
-                    </button>
-                </div>
-                <p id="fretUploadHint" class="fret-upload-hint">
-                    PDB files up to 25 MiB. Calculations are available when running
-                    the local Python server; GitHub Pages cannot run them.
-                </p>
-                <div id="fretUploadStatus" class="fret-upload-status" role="status" aria-live="polite">
-                    Checking local calculator…
-                </div>
-                <div id="fretUploadResult" class="analysis-results hidden" aria-live="polite">
-                    <h3 id="analysisTitle"></h3>
-                    <div class="analysis-model-grid">
-                        <section class="analysis-model-card fret-result" aria-labelledby="fretMetricsTitle">
-                            <h4 id="fretMetricsTitle">FRET</h4>
-                            <dl>
-                                <div><dt>Diffusion length</dt><dd id="fretUploadLength">—</dd></div>
-                                <div><dt>Total pairs</dt><dd id="fretUploadTotalPairs">—</dd></div>
-                                <div><dt>Coherent pairs</dt><dd id="fretUploadCoherentPairs">—</dd></div>
-                                <div><dt>Coherent pair fraction</dt><dd id="fretUploadFraction">—</dd></div>
-                            </dl>
+                    <p id="fretUploadResultError" class="error-message hidden" role="alert"></p>
+                    <div class="method-results">
+                        <section class="method-result" aria-labelledby="fretResultHeading">
+                            <div class="method-result-heading"><span class="method-index">A</span><h3 id="fretResultHeading">FRET</h3></div>
+                            <dl class="metric-list" id="fretMetrics"></dl>
                         </section>
-                        <section class="analysis-model-card det-result" aria-labelledby="detMetricsTitle">
-                            <h4 id="detMetricsTitle">DET</h4>
-                            <dl>
-                                <div><dt>Diffusion length</dt><dd id="detUploadLength">—</dd></div>
-                                <div><dt>Total pairs</dt><dd id="detUploadTotalPairs">—</dd></div>
-                                <div><dt>Coherent pairs</dt><dd id="detUploadCoherentPairs">—</dd></div>
-                                <div><dt>Coherent pair fraction</dt><dd id="detUploadFraction">—</dd></div>
-                            </dl>
+                        <section class="method-result" aria-labelledby="detResultHeading">
+                            <div class="method-result-heading"><span class="method-index">B</span><h3 id="detResultHeading">DET</h3></div>
+                            <dl class="metric-list" id="detMetrics"></dl>
                         </section>
                     </div>
-                    <p id="fretUploadResultError" class="fret-upload-result-error hidden" role="alert"></p>
-                    <div class="analysis-charts">
-                        <section class="analysis-chart-card">
-                            <h4>Diffusion Length</h4>
-                            <p>Angstroms (Å); bars show each model</p>
-                            <div id="diffusionChart" class="comparison-chart" role="img" aria-label="Diffusion length comparison"></div>
+                    <div class="charts-grid">
+                        <section class="chart-card">
+                            <div class="chart-card-title"><span>01</span><h3>Diffusion length <small>Å</small></h3></div>
+                            <div id="diffusionLengthChart" class="comparison-chart" role="img" aria-label="FRET versus DET diffusion length in angstroms"></div>
                         </section>
-                        <section class="analysis-chart-card">
-                            <h4>Pair Counts</h4>
-                            <p>Pairs; grouped by model</p>
-                            <div id="pairCountsChart" class="comparison-chart" role="img" aria-label="Total and coherent pair counts comparison"></div>
+                        <section class="chart-card">
+                            <div class="chart-card-title"><span>02</span><h3>Chromophore pairs <small>count</small></h3></div>
+                            <div id="pairCountsChart" class="comparison-chart" role="img" aria-label="FRET and DET total and coherent pair counts"></div>
                         </section>
-                        <section class="analysis-chart-card">
-                            <h4>Coherent Pair Fraction</h4>
-                            <p>Percentage (%); bars show each model</p>
-                            <div id="fractionChart" class="comparison-chart" role="img" aria-label="Coherent pair fraction comparison"></div>
+                        <section class="chart-card">
+                            <div class="chart-card-title"><span>03</span><h3>Coherent-pair fraction <small>%</small></h3></div>
+                            <div id="coherentPairFractionChart" class="comparison-chart" role="img" aria-label="FRET versus DET coherent pair fraction"></div>
                         </section>
                     </div>
+                </section>
+                <div id="analysisEmptyState" class="analysis-empty-state">
+                    <span class="empty-state-symbol">Δ</span>
+                    <div><strong>Awaiting structure analysis</strong><p>Choose a structure above, then calculate to compare diffusion-length metrics.</p></div>
                 </div>
-            </form>
         </section>
-
-        <!-- Result -->
-        <section id="resultSection" class="result-section hidden">
-
-            <!-- PDB Header -->
-            <div class="result-header">
-
-                <div>
-                    <span class="result-label">PDB STRUCTURE</span>
-
-                    <h2 id="pdbIdDisplay">1A00</h2>
-                </div>
-
-                <div class="result-status">
-                    <span class="status-dot"></span>
-                    Database Match
-                </div>
-
-            </div>
-
-
-            <!-- Diffusion Results -->
-            <div class="metrics-grid">
-
-                <div class="metric-card fret-card">
-
-                    <div class="metric-title">
-                        FRET Diffusion Length
-                    </div>
-
-                    <div class="metric-value">
-                        <span id="fretValue">—</span>
-                        <span class="metric-unit">Å</span>
-                    </div>
-
-                    <div class="metric-description">
-                        Förster Resonance Energy Transfer
-                    </div>
-
-                </div>
-
-
-                <div class="metric-card det-card">
-
-                    <div class="metric-title">
-                        DET Diffusion Length
-                    </div>
-
-                    <div class="metric-value">
-                        <span id="detValue">—</span>
-                        <span class="metric-unit">Å</span>
-                    </div>
-
-                    <div class="metric-description">
-                        Dexter Energy Transfer
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Organism -->
-            <div class="content-card">
-
-                <div class="card-header">
-                    <h3>Organism Information</h3>
-                </div>
-
-                <div class="info-grid">
-
-                    <div class="info-item">
-                        <span class="info-label">Species</span>
-                        <span class="info-value" id="species"></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="info-label">Scientific Name</span>
-                        <span class="info-value" id="scientificName"></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="info-label">Taxonomy ID</span>
-                        <span class="info-value" id="taxId"></span>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Taxonomy -->
-            <div class="content-card">
-
-                <div class="card-header">
-                    <h3>Taxonomic Classification</h3>
-                </div>
-
-                <div class="taxonomy-grid">
-
-                    <div class="taxonomy-item">
-                        <span>Kingdom</span>
-                        <strong id="kingdom">—</strong>
-                    </div>
-
-                    <div class="taxonomy-item">
-                        <span>Phylum</span>
-                        <strong id="phylum">—</strong>
-                    </div>
-
-                    <div class="taxonomy-item">
-                        <span>Class</span>
-                        <strong id="className">—</strong>
-                    </div>
-
-                    <div class="taxonomy-item">
-                        <span>Order</span>
-                        <strong id="order">—</strong>
-                    </div>
-
-                    <div class="taxonomy-item">
-                        <span>Family</span>
-                        <strong id="family">—</strong>
-                    </div>
-
-                    <div class="taxonomy-item">
-                        <span>Genus</span>
-                        <strong id="genus">—</strong>
-                    </div>
-
-                    <div class="taxonomy-item">
-                        <span>Species</span>
-                        <strong id="speciesY">—</strong>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Lineage -->
-            <div class="content-card">
-
-                <div class="card-header">
-                    <h3>Full Taxonomic Lineage</h3>
-                </div>
-
-                <div class="lineage" id="lineage">
-                    —
-                </div>
-
-            </div>
-
-
-            <!-- Raw Data -->
-            <div class="content-card">
-
-                <div class="card-header">
-                    <h3>Database Record</h3>
-                </div>
-
-                <div class="raw-record" id="rawRecord">
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- No Result -->
-        <section id="noResult" class="no-result hidden">
-
-            <div class="no-result-icon">
-                ?
-            </div>
-
-            <h3>PDB ID <span id="noResultId"></span> not found</h3>
-
-            <p>
-                No matching structure was found in this database.
-            </p>
-
-            <p class="hint">
-                Check the four-character identifier and try again.
-            </p>
-
-        </section>
-
-
-        <!-- Initial Information -->
-        <section id="initialMessage" class="initial-message">
-
-            <div class="initial-icon" aria-hidden="true">
-                <span class="initial-icon-ring"></span>
-                <span class="initial-icon-core">P</span>
-            </div>
-
-            <h3>Your next discovery starts here</h3>
-
-            <p>
-                Enter a PDB ID above to reveal diffusion measurements and
-                organism details for that structure.
-            </p>
-
-        </section>
-
     </main>
 
-
-    <!-- Footer -->
-    <footer class="site-footer">
-
-        <div>
-            PDB Diffusion Database
-        </div>
-
-        <div>
-            FRET <span>·</span> DET <span>·</span> Protein Structure Analysis
-        </div>
-
+    <footer class="page-footer">
+        <span>PLEXCAL</span>
+        <p>Structure-aware excitation energy-transfer diffusion analysis</p>
+        <span>FRET / DET</span>
     </footer>
-
-
-    <script src="script.js"></script>
     <script src="fret_upload.js"></script>
-
 </body>
 </html>
