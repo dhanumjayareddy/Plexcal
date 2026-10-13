@@ -41,9 +41,10 @@ diffusion length, total pairs, coherent pairs, and coherent-pair fraction for
 each method, with separate comparison charts for lengths, pair counts, and
 fractions.
 
-Completed results are retained in the current browser tab across page refreshes.
-Uploaded PDB files are not persisted by the browser, so select the file again
-to restore its 3D preview after refreshing.
+Completed results are retained in the current browser tab across page refreshes;
+the 3D structure preview is intentionally not reloaded on refresh. Uploaded PDB
+files are not persisted by the browser, so select the file again to preview it.
+The results and glossary appear immediately after the structure workspace.
 
 The uploaded-file FRET calculator is a Python translation of
 `process_single_pdb_v1.m`. Its Monte Carlo calculation uses 10,000 excitation

@@ -11,12 +11,12 @@ from pathlib import Path
 from process_single_pdb import process_single_pdb
 
 
-PDB_DIRECTORY = Path(__file__).resolve().parent / "all_proteins_pdb"
+PDB_DIRECTORY = Path(r"D:\DJREDDY\EGFR Isha\EGFR_mutants_20260903")
 DEFAULT_WORKERS = max(1, min(4, os.cpu_count() or 1))
 
 
 def _process_one_pdb(pdb_path: Path) -> tuple[str, dict]:
-    result = process_single_pdb(pdb_path, 0.0)
+    result = process_single_pdb(pdb_path)
     return pdb_path.name, result
 
 

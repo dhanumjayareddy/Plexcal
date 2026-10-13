@@ -2,6 +2,7 @@ const form = document.getElementById("fretUploadForm");
 const statusMessage = document.getElementById("fretUploadStatus");
 const resultSection = document.getElementById("fretUploadResult");
 const resultError = document.getElementById("fretUploadResultError");
+const analysisResultState = document.getElementById("analysisResultState");
 const fileInput = document.getElementById("pdbFile");
 const sourceInput = document.getElementById("structureSource");
 const identifierInput = document.getElementById("structureIdentifier");
@@ -318,10 +319,8 @@ function createBar(value, maximum, colorClass, valueLabel) {
     bar.setAttribute("aria-hidden", "true");
     unit.append(valueElement, bar);
     barArea.append(unit);
-    const modelLabel = document.createElement("span");
-    modelLabel.className = "chart-label";
-    column.append(barArea, modelLabel);
-    return { column, modelLabel };
+    column.append(barArea);
+    return column;
 }
 
 function addLegend(chart, entries) {
@@ -344,15 +343,14 @@ function renderComparisonChart(chart, fret, det, field, valueFormatter) {
     chart.replaceChildren();
     const values = [finiteValue(fret[field]), finiteValue(det[field])];
     const maximum = Math.max(0, ...values.filter((value) => value !== null));
-    for (const [index, label] of ["FRET", "DET"].entries()) {
-        const bar = createBar(
+    for (const index of [0, 1]) {
+        const column = createBar(
             values[index],
             maximum,
             index === 0 ? "fret" : "det",
             valueFormatter,
         );
-        bar.modelLabel.textContent = label;
-        chart.append(bar.column);
+        chart.append(column);
     }
 }
 
@@ -401,10 +399,7 @@ function renderPairCountChart(chart, fret, det) {
             unit.append(valueLabel, bar, kindLabel);
             bars.append(unit);
         }
-        const modelLabel = document.createElement("span");
-        modelLabel.className = "chart-label";
-        modelLabel.textContent = group.name;
-        column.append(bars, modelLabel);
+        column.append(bars);
         chart.append(column);
     }
     addLegend(chart, [
@@ -454,12 +449,20 @@ function displayAnalysis(payload, persist = true) {
         `${payload.input.filename} · ${payload.input.source.toUpperCase()}`;
     renderCharts(payload.fret, payload.det);
 
+    const failedMethods = [
+        ["FRET", payload.fret],
+        ["DET", payload.det],
+    ].filter(([, metrics]) => finiteValue(metrics.diffusion_length_angstrom) === null);
     const errors = [
-        payload.fret.error && `FRET: ${payload.fret.error}`,
-        payload.det.error && `DET: ${payload.det.error}`,
+        ...failedMethods.map(([method, metrics]) =>
+            `${method}: ${methodFailureMessage(metrics.error)}`),
     ].filter(Boolean);
     resultError.textContent = errors.join(" ");
     resultError.classList.toggle("hidden", errors.length === 0);
+    analysisResultState.querySelector("span").textContent = failedMethods.length
+        ? "Partial analysis"
+        : "Analysis complete";
+    analysisResultState.classList.toggle("is-partial", failedMethods.length > 0);
     resultSection.classList.remove("hidden");
     analysisEmptyState.classList.add("hidden");
 
@@ -470,6 +473,15 @@ function displayAnalysis(payload, persist = true) {
             console.warn("Could not preserve analysis results for refresh.", error);
         }
     }
+}
+
+function methodFailureMessage(error) {
+    if (typeof error === "string" && /aromatic|TRP|TYR|PHE|coordinates/i.test(error)) {
+        return `could not be calculated because supported aromatic-ring (TRP, TYR, or PHE) atoms and coordinates could not be identified. Check that the PDB contains complete coordinates for these residues.`;
+    }
+    return typeof error === "string" && error.trim()
+        ? `could not be calculated. ${error}`
+        : `could not be calculated for this structure.`;
 }
 
 function restoreAnalysis() {
@@ -487,12 +499,6 @@ function restoreAnalysis() {
             && typeof payload.input.source === "string"
         ) {
             displayAnalysis(payload, false);
-            if (payload.input.source !== "upload") {
-                void openStructureViewer(
-                    payload.input.source,
-                    payload.input.identifier,
-                );
-            }
         } else {
             throw new TypeError("Stored analysis data has an invalid shape.");
         }
@@ -716,6 +722,24 @@ async function previewSelectedStructure() {
     await openStructureViewer(source, identifier);
 }
 
+function calculationFailureMessage(payload, status) {
+    if (status === 422) {
+        const methodErrors = [
+            ["FRET", payload.fret?.error],
+            ["DET", payload.det?.error],
+        ].filter(([, error]) => typeof error === "string" && error.trim());
+        const errorDetails = methodErrors.map(([, error]) => error);
+        if (errorDetails.some((error) => /aromatic|TRP|TYR|PHE|coordinates/i.test(error))) {
+            return "Plexcal couldn't identify supported aromatic rings (TRP, TYR, or PHE) with the atom coordinates needed for this structure. Check that the PDB contains complete aromatic-residue coordinates, or try another structure.";
+        }
+        if (methodErrors.length) {
+            return `Plexcal could not calculate ${methodErrors.map(([method]) => method).join(" and ")} for this structure. ${errorDetails.join(" ")}`;
+        }
+        return "Plexcal could not calculate FRET and DET for this structure. Check that the PDB contains valid aromatic-residue coordinates, then try again.";
+    }
+    return payload.error || `Calculation failed with HTTP ${status}.`;
+}
+
 async function calculateStructure(event) {
     event.preventDefault();
     resultError.classList.add("hidden");
@@ -745,10 +769,9 @@ async function calculateStructure(event) {
             body: formData,
         });
         const payload = await response.json();
-        if (!response.ok || !payload.fret || !payload.det || !payload.input) {
-            throw new Error(
-                payload.error || `Calculation failed with HTTP ${response.status}.`,
-            );
+        const hasMetrics = payload?.fret && payload?.det && payload?.input;
+        if (!hasMetrics || (!response.ok && response.status !== 422)) {
+            throw new Error(calculationFailureMessage(payload, response.status));
         }
 
         if (source === "upload") {
@@ -757,7 +780,26 @@ async function calculateStructure(event) {
             }
         }
         displayAnalysis(payload);
-        setStatus(`FRET and DET diffusion-length analysis complete for ${payload.input.filename}.`);
+        const fretAvailable =
+            finiteValue(payload.fret.diffusion_length_angstrom) !== null;
+        const detAvailable =
+            finiteValue(payload.det.diffusion_length_angstrom) !== null;
+        if (fretAvailable && detAvailable) {
+            setStatus(`FRET and DET diffusion-length analysis complete for ${payload.input.filename}.`);
+        } else {
+            const availableMethods = [
+                fretAvailable && "FRET",
+                detAvailable && "DET",
+            ].filter(Boolean);
+            const unavailableMethods = [
+                !fretAvailable && "FRET",
+                !detAvailable && "DET",
+            ].filter(Boolean);
+            setStatus(
+                `${availableMethods.join(" and ") || "No"} result${availableMethods.length === 1 ? "" : "s"} available for ${payload.input.filename}. ${unavailableMethods.join(" and ")} could not be calculated; see the results for details.`,
+                true,
+            );
+        }
         const structureKey =
             `${source}:${source === "upload" ? activeUploadUrl : identifier}`;
         if (activeStructureKey !== structureKey) {
@@ -768,7 +810,7 @@ async function calculateStructure(event) {
         console.error("Structure calculation error:", error);
     } finally {
         calculateButton.disabled = false;
-        calculateButton.textContent = "Calculate FRET and DET";
+        calculateButton.textContent = "Calculate photoexcitation diffusion lengths";
     }
 }
 
